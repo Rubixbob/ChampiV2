@@ -39,3 +39,7 @@
 
 # debug information files
 *.dwo
+
+
+/Champi/.vs
+/Champi/Champi/x64

@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Champi.vcxproj" Id="b4875acc-4443-4732-ba10-0bf4d627edad" />
+</Solution>
