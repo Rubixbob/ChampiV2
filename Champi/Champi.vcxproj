@@ -140,7 +140,12 @@
     <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="SolverOld\BiSFinder.cpp" />
+    <ClCompile Include="SolverOld\FullSet.cpp" />
+    <ClCompile Include="SolverOld\GearPiece.cpp" />
+    <ClCompile Include="SolverOld\MeldFinder.cpp" />
     <ClCompile Include="UI\MainWindow.cpp" />
+    <ClCompile Include="UI\SolveTab.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imconfig.h" />
@@ -151,7 +156,13 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="SolverOld\BiSFinder.h" />
+    <ClInclude Include="SolverOld\CommonStructs.h" />
+    <ClInclude Include="SolverOld\FullSet.h" />
+    <ClInclude Include="SolverOld\GearPiece.h" />
+    <ClInclude Include="SolverOld\MeldFinder.h" />
     <ClInclude Include="UI\MainWindow.h" />
+    <ClInclude Include="UI\SolveTab.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

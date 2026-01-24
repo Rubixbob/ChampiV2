@@ -30,7 +30,7 @@ void MainWindow::draw()
     {
         if (ImGui::BeginTabItem("Solve"))
         {
-            ImGui::Text("This is the Solve tab!\nCurrently Empty");
+			SolveTab::Instance().draw();
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Sets"))

@@ -45,6 +45,21 @@
     <ClCompile Include="UI\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UI\SolveTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolverOld\MeldFinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolverOld\GearPiece.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolverOld\FullSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolverOld\BiSFinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imconfig.h">
@@ -72,6 +87,24 @@
       <Filter>Source Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="UI\MainWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\SolveTab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOld\MeldFinder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOld\GearPiece.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOld\FullSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOld\CommonStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOld\BiSFinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

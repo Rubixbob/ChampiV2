@@ -1,0 +1,2 @@
+BaseMainStat	508
+Haste	0

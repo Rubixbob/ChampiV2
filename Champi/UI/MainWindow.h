@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../ImGui/imgui.h"
+#include "SolveTab.h"
 
 class MainWindow
 {
@@ -14,4 +15,3 @@ public:
 private:
     static MainWindow m_instance;
 };
-
