@@ -48,16 +48,43 @@
     <ClCompile Include="UI\SolveTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SolverOld\MeldFinder.cpp">
+    <ClCompile Include="Entities\GearPiece.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SolverOld\GearPiece.cpp">
+    <ClCompile Include="Config\FileReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SolverOld\FullSet.cpp">
+    <ClCompile Include="UI\SettingsTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SolverOld\BiSFinder.cpp">
+    <ClCompile Include="Entities\Materia.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\Food.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\Data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\Job.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\BaseParam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver\Damage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver\GearSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver\MeldSolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver\SetBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver\Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,19 +119,43 @@
     <ClInclude Include="UI\SolveTab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolverOld\MeldFinder.h">
+    <ClInclude Include="Entities\GearPiece.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolverOld\GearPiece.h">
+    <ClInclude Include="Config\FileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolverOld\FullSet.h">
+    <ClInclude Include="UI\SettingsTab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolverOld\CommonStructs.h">
+    <ClInclude Include="Entities\Materia.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolverOld\BiSFinder.h">
+    <ClInclude Include="Entities\Food.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\Data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\Job.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\BaseParam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver\Damage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver\GearSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver\MeldSolver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver\SetBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver\Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

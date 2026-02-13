@@ -3,15 +3,16 @@
 #include <iostream>
 #include "../ImGui/imgui.h"
 #include "SolveTab.h"
+#include "SettingsTab.h"
 
 class MainWindow
 {
 public:
     MainWindow();
     virtual ~MainWindow();
-    static MainWindow& Instance() { return m_instance; }
+    static MainWindow& Instance() { return _instance; }
 
 	void draw();
 private:
-    static MainWindow m_instance;
+    static MainWindow _instance;
 };

@@ -133,6 +133,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Champi.cpp" />
+    <ClCompile Include="Config\FileReader.cpp" />
+    <ClCompile Include="Entities\BaseParam.cpp" />
+    <ClCompile Include="Entities\Data.cpp" />
+    <ClCompile Include="Entities\Food.cpp" />
+    <ClCompile Include="Entities\Job.cpp" />
+    <ClCompile Include="Entities\Materia.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
     <ClCompile Include="ImGui\imgui_draw.cpp" />
@@ -140,14 +146,23 @@
     <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="SolverOld\BiSFinder.cpp" />
-    <ClCompile Include="SolverOld\FullSet.cpp" />
-    <ClCompile Include="SolverOld\GearPiece.cpp" />
-    <ClCompile Include="SolverOld\MeldFinder.cpp" />
+    <ClCompile Include="Entities\GearPiece.cpp" />
+    <ClCompile Include="Solver\Damage.cpp" />
+    <ClCompile Include="Solver\GearSet.cpp" />
+    <ClCompile Include="Solver\MeldSolver.cpp" />
+    <ClCompile Include="Solver\SetBuilder.cpp" />
+    <ClCompile Include="Solver\Settings.cpp" />
+    <ClCompile Include="UI\SettingsTab.cpp" />
     <ClCompile Include="UI\MainWindow.cpp" />
     <ClCompile Include="UI\SolveTab.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config\FileReader.h" />
+    <ClInclude Include="Entities\BaseParam.h" />
+    <ClInclude Include="Entities\Data.h" />
+    <ClInclude Include="Entities\Food.h" />
+    <ClInclude Include="Entities\Job.h" />
+    <ClInclude Include="Entities\Materia.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_dx11.h" />
@@ -156,11 +171,13 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
-    <ClInclude Include="SolverOld\BiSFinder.h" />
-    <ClInclude Include="SolverOld\CommonStructs.h" />
-    <ClInclude Include="SolverOld\FullSet.h" />
-    <ClInclude Include="SolverOld\GearPiece.h" />
-    <ClInclude Include="SolverOld\MeldFinder.h" />
+    <ClInclude Include="Entities\GearPiece.h" />
+    <ClInclude Include="Solver\Damage.h" />
+    <ClInclude Include="Solver\GearSet.h" />
+    <ClInclude Include="Solver\MeldSolver.h" />
+    <ClInclude Include="Solver\SetBuilder.h" />
+    <ClInclude Include="Solver\Settings.h" />
+    <ClInclude Include="UI\SettingsTab.h" />
     <ClInclude Include="UI\MainWindow.h" />
     <ClInclude Include="UI\SolveTab.h" />
   </ItemGroup>

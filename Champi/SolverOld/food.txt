@@ -1,4 +1,0 @@
-Rock-fisted Popoto Stew	0.1	151	0	0	0.1	91	0	0
-Rock-fisted Popoto Salad	0.1	91	0	0	0	0	0.1	151
-Caramel Popcorn	0	0	0.1	91	0.1	151	0	0
-Nachos	0	0	0.1	151	0	0	0.1	91

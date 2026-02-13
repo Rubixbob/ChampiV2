@@ -43,3 +43,6 @@
 
 /Champi/.vs
 /Champi/Champi/x64
+/Champi/Config/Settings.ini
+*.csv
+/Champi/imgui.ini

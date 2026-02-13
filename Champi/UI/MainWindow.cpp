@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 
-MainWindow MainWindow::m_instance = MainWindow();
+MainWindow MainWindow::_instance = MainWindow();
 
 MainWindow::MainWindow()
 {
@@ -15,7 +15,7 @@ MainWindow::~MainWindow()
 void MainWindow::draw()
 {
     static bool use_work_area = true;
-    static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+    static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
     // We demonstrate using the full viewport area or the work area (without menu-bars, task-bars etc.)
     // Based on your use case you may want one or the other.
@@ -26,21 +26,17 @@ void MainWindow::draw()
     ImGui::Begin("Main window", nullptr, flags);
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-    if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
-    {
-        if (ImGui::BeginTabItem("Solve"))
-        {
+    if (ImGui::BeginTabBar("MainTabBar", tab_bar_flags)) {
+        if (ImGui::BeginTabItem("Solve")) {
 			SolveTab::Instance().draw();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Sets"))
-        {
+        if (ImGui::BeginTabItem("Sets")) {
             ImGui::Text("This is the Sets tab!\nCurrently Empty");
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Options"))
-        {
-            ImGui::Text("This is the Options tab!\nCurrently Empty");
+        if (ImGui::BeginTabItem("Settings")) {
+            SettingsTab::Instance().draw();
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
