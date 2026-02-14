@@ -1,0 +1,36 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build solution (Release x64)
+      run: msbuild Champi/Champi.slnx /p:Configuration=Release /p:Platform=x64
+
+    - name: Prepare release folder
+      run: |
+        mkdir release
+        copy Champi\x64\Release\Champi.exe release\
+        xcopy Champi\Config\*.txt release\ /Y
+
+    - name: Create zip archive
+      run: Compress-Archive -Path release\* -DestinationPath Champi-${{ github.ref_name }}.zip
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        files: Champi-${{ github.ref_name }}.zip
