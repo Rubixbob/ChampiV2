@@ -49,5 +49,21 @@ public:
 	vector<MeldPerm> meldPerms;
 	map<int, map<int, int>> availableSlots; // Max available slots per grade then per baseParam
 
+	inline static const map<int, string> equipSlotName = {
+		{1, "Weapon"},
+		{2, "Shield"},
+		{3, "Head"},
+		{4, "Body"},
+		{5, "Hands"},
+		{6, "Waist"},
+		{7, "Legs"},
+		{8, "Feet"},
+		{9, "Earrings"},
+		{10, "Necklace"},
+		{11, "Bracelets"},
+		{12, "Ring"},
+		{13, "Weapon"}
+	};
+
 	void setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList);
 };

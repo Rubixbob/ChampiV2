@@ -666,6 +666,8 @@ void FileReader::readJobLight() {
             job.categories.insert(category);
         }
     }
+
+    sort(Data::Instance().jobList.begin(), Data::Instance().jobList.end(), [](const Job& j1, const Job& j2) { return j1.name < j2.name; });
 }
 
 void FileReader::readMateriaLight() {

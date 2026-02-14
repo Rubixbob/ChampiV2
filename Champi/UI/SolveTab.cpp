@@ -82,6 +82,8 @@ void SolveTab::drawGearTab() {
                 int col = 0;
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(col++);
+                ImGui::TextUnformatted(GearPiece::equipSlotName.at(item->equipSlotCategory).c_str());
+                ImGui::TableSetColumnIndex(col++);
                 const bool isSelected = _selectedGearPieces[slot].contains(idx);
                 if (ImGui::Selectable(item->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
                     if (isSelected) {
@@ -273,10 +275,12 @@ void SolveTab::drawSelectedResultModal() {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("SelectedResultPopup", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize)) {
-        if (ImGui::BeginTable("SelectedResultTable", _selectedResultSlots + 1, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg)) {
+        if (ImGui::BeginTable("SelectedResultTable", _selectedResultSlots + 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg)) {
             for (auto perm : _selectedResult.meldPerms) {
                 ImGui::TableNextRow();
                 int col = 0;
+                ImGui::TableSetColumnIndex(col++);
+                ImGui::TextUnformatted(GearPiece::equipSlotName.at(perm->gearPiece->equipSlotCategory).c_str());
                 ImGui::TableSetColumnIndex(col++);
                 ImGui::Text(perm->gearPiece->name.c_str());
                 for (int slot = 0; slot < 5; slot++) {
@@ -467,12 +471,13 @@ void SolveTab::setColumnHeaders() {
         _foodBaseParamToDisplay.push_back(baseParam);
     }
 
+    _gearColumnHeaders.push_back("Equip slot");
     _gearColumnHeaders.push_back("Name");
     for (const auto& baseParam : _gearBaseParamToDisplay) {
         _gearColumnHeaders.push_back(BaseParam::abbr.at(baseParam));
     }
     _gearColumnHeaders.push_back("iLvl");
-    _gearColumnHeaders.push_back("Slots");
+    _gearColumnHeaders.push_back("Meld slots");
 
     _foodColumnHeaders.push_back("Name");
     for (const auto& baseParam : _foodBaseParamToDisplay) {

@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <filesystem>
+#include <algorithm>
 
 #include "../Entities/Data.h"
 #include "../Entities/GearPiece.h"
