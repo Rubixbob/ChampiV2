@@ -237,6 +237,7 @@ void FileReader::handleItemLine(const vector<string>& attributes, map<string, in
 
 		auto foodIt = _itemActionIdToItemFoodIdx.find(itemActionId);
         if (foodIt != _itemActionIdToItemFoodIdx.end()) {
+            Data::Instance().foodList[foodIt->second].id = id;
             Data::Instance().foodList[foodIt->second].name = name;
             Data::Instance().foodList[foodIt->second].levelItem = levelItem;
         }
@@ -266,14 +267,13 @@ void FileReader::handleItemFoodLine(const vector<string>& attributes, map<string
 
     Data::Instance().foodList.emplace_back();
 	auto& food = Data::Instance().foodList.back();
-	food.id = stoi(attributes[col["#"]]);
 	for (int i = 0; i < 3; i++) {
 		food.valueHQ[i] = stoi(attributes[col["ValueHQ[" + to_string(i) + "]"]]);
 		food.maxHQ[i] = stoi(attributes[col["MaxHQ[" + to_string(i) + "]"]]);
 		food.baseParam[i] = baseParam[i];
 	}
 
-	_itemFoodIdToIdx[food.id] = Data::Instance().foodList.size() - 1;
+	_itemFoodIdToIdx[stoi(attributes[col["#"]])] = Data::Instance().foodList.size() - 1;
 }
 
 void FileReader::handleMateriaLine(const vector<string>& attributes, map<string, int>& col) {

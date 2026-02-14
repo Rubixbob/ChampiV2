@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -27,6 +29,7 @@ public:
 	float damageMod;
 	int gcdInt; // Actual GCD x100
 	Food* selectedFood = nullptr;
+	const Job* selectedJob = nullptr;
 
 	int damagePhys;
 	int damageMag;
@@ -49,9 +52,10 @@ public:
 	int setGcd();
 	int meldedGcd();
 	int fedMeldedGcd();
-private:
-	const Job* _job = nullptr;
+	string gcdStr();
 
+	string toJson();
+private:
 	float calcDamageMod(const map<int, int>& baseParamValue);
 	int gcd(const map<int, int>& baseParamValue);
 };

@@ -27,15 +27,15 @@ void MainWindow::draw()
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if (ImGui::BeginTabBar("MainTabBar", tab_bar_flags)) {
-        if (ImGui::BeginTabItem("Solve")) {
+        if (ImGui::BeginHandTabItem("Solve")) {
 			SolveTab::Instance().draw();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Sets")) {
+        if (ImGui::BeginHandTabItem("Sets")) {
             ImGui::Text("This is the Sets tab!\nCurrently Empty");
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Settings")) {
+        if (ImGui::BeginHandTabItem("Settings")) {
             SettingsTab::Instance().draw();
             ImGui::EndTabItem();
         }

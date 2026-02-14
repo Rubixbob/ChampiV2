@@ -4,7 +4,7 @@ MeldSolver::MeldSolver() {
     //ctor
 }
 
-MeldSolver::MeldSolver(const Job* job, vector<GearPiece*> gearPieces, vector<Food*> foodList, vector<int> releventMateriaBaseParam, atomic_int* activeThreads, stop_token stopToken)
+MeldSolver::MeldSolver(Job* job, vector<GearPiece*> gearPieces, vector<Food*> foodList, vector<int> releventMateriaBaseParam, atomic_int* activeThreads, stop_token stopToken)
     : _job(job), gearPieces(gearPieces), _foodList(foodList), _releventMateriaBaseParam(releventMateriaBaseParam), _solveActiveThreads(activeThreads), _solveStopToken(stopToken) {
     //ctor
 }

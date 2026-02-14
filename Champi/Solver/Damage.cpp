@@ -12,7 +12,7 @@ Damage::~Damage()
     //dtor
 }
 
-void Damage::init(const Job& job, int level) {
+void Damage::init(Job* job, int level) {
     _wdMod.clear();
     _mainStatMod.clear();
     _dhMod.clear();
@@ -21,14 +21,14 @@ void Damage::init(const Job& job, int level) {
     _tenMod.clear();
     _gcd.clear();
 
-    _jobMod = job.primaryStatMod;
-    if (job.name == "MNK") {
+    _jobMod = job->primaryStatMod;
+    if (job->name == "MNK") {
         _haste = 20;
-    } else if (job.name == "NIN") {
+    } else if (job->name == "NIN") {
         _haste = 15;
-    } else if (job.name == "SAM") {
+    } else if (job->name == "SAM") {
         _haste = 13;
-    } else if (job.name == "VPR") {
+    } else if (job->name == "VPR") {
         _haste = 15;
     } else {
         _haste = 0;

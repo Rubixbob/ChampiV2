@@ -12,7 +12,7 @@ SetBuilder::~SetBuilder()
     //dtor
 }
 
-void SetBuilder::startSolve(const Job& job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
+void SetBuilder::startSolve(Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
     isSolving = true;
     solvingTime = 0;
     _equipSlots.clear();
@@ -34,7 +34,7 @@ void SetBuilder::cancelSolve() {
     }
 }
 
-void SetBuilder::solve(stop_token stopToken, const Job& job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
+void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
     auto startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
     auto maxHardwareThreads = max(Settings::Instance().maxParallelWorkers - 1, 1);
@@ -64,7 +64,7 @@ void SetBuilder::solve(stop_token stopToken, const Job& job, int level, const ma
     auto gearPiecesToSolve = initGear(gearPieces);
     deque<int> meldSolversReadyIdx;
     set<int> meldSolversToSave;
-    MeldSolver defaultMeldSolver(&job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
+    MeldSolver defaultMeldSolver(job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
     map<int, MeldSolver> meldSolvers;
     map<int, jthread> threads;
     //int foodMaxSks = 0;

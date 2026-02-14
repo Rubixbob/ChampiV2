@@ -14,15 +14,14 @@ void SolveTab::draw() {
     ImGui::Text("Job");
     ImGui::SameLine();
     ImGui::PushItemWidth(100);
-    if (ImGui::BeginCombo("##Job", _selectedJobName.c_str())) {
+    if (ImGui::BeginHandCombo("##Job", _selectedJobName.c_str())) {
         for (auto& job : Data::Instance().jobList) {
             const bool isSelected = (_selectedJobName == job.name);
-            if (ImGui::Selectable(job.name.c_str(), isSelected)) {
+            if (ImGui::HandSelectable(job.name.c_str(), isSelected)) {
                 _selectedJobName = job.name;
                 selectJob();
             }
-            if (isSelected)
-                ImGui::SetItemDefaultFocus();
+            if (isSelected) ImGui::SetItemDefaultFocus();
         }
         ImGui::EndCombo();
     }
@@ -31,15 +30,15 @@ void SolveTab::draw() {
     drawSolveButton();
 
     if (ImGui::BeginTabBar("SolveTabBar")) {
-        if (ImGui::BeginTabItem("Gear")) {
+        if (ImGui::BeginHandTabItem("Gear")) {
             drawGearTab();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Food")) {
+        if (ImGui::BeginHandTabItem("Food")) {
             drawFoodTab();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Results", nullptr, _selectResultsTab ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None)) {
+        if (ImGui::BeginHandTabItem("Results", nullptr, _selectResultsTab ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None)) {
             _selectResultsTab = false;
             drawResultsTab();
             ImGui::EndTabItem();
@@ -85,7 +84,7 @@ void SolveTab::drawGearTab() {
                 ImGui::TextUnformatted(GearPiece::equipSlotName.at(item->equipSlotCategory).c_str());
                 ImGui::TableSetColumnIndex(col++);
                 const bool isSelected = _selectedGearPieces[slot].contains(idx);
-                if (ImGui::Selectable(item->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
+                if (ImGui::HandSelectable(item->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
                     if (isSelected) {
                         _selectedGearPieces[slot].erase(idx);
                     }
@@ -93,9 +92,8 @@ void SolveTab::drawGearTab() {
                         _selectedGearPieces[slot].insert(idx);
                     }
                 }
-                if (!isSelected) {
-                    ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
-                }
+                if (!isSelected) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
+                
                 for (const auto& baseParam : _gearBaseParamToDisplay) {
                     ImGui::TableSetColumnIndex(col++);
                     if (baseParam == 12) {
@@ -155,7 +153,7 @@ void SolveTab::drawFoodTab() {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(col++);
             const bool isSelected = _selectedFoodIdx.contains(idx);
-            if (ImGui::Selectable(food->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
+            if (ImGui::HandSelectable(food->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
                 if (isSelected) {
                     _selectedFoodIdx.erase(idx);
                 }
@@ -163,9 +161,8 @@ void SolveTab::drawFoodTab() {
                     _selectedFoodIdx.insert(idx);
                 }
             }
-            if (!isSelected) {
-                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
-            }
+            if (!isSelected) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
+            
             for (const auto& baseParam : _foodBaseParamToDisplay) {
                 ImGui::TableSetColumnIndex(col++);
                 int baseParamValue = baseParamToIdx.contains(baseParam) ? food->valueHQ[baseParamToIdx[baseParam]] : 0;
@@ -203,6 +200,14 @@ void SolveTab::drawResultsTab() {
         ImGui::TextUnformatted(solvingText.str().c_str());
     }
 
+    if (SetBuilder::Instance().results.size() > 0 && !SetBuilder::Instance().isSolving) {
+        ImGui::SameLine();
+        const char* exportAll = "XivGear Export All";
+        float off = (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(exportAll).x - ImGui::GetStyle().FramePadding.x * 2);
+        if (off > 0.0f) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+        drawClipboardButton(exportAll, [this] { return resultsToJson(); });
+    }
+
     ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp;
     ImVec2 outer_size = ImVec2(0.0f, min(ImGui::GetFrameHeight() + SetBuilder::Instance().results.size() * (ImGui::GetTextLineHeight() + ImGui::GetStyle().CellPadding.y * 2.0f) - 2, ImGui::GetContentRegionAvail().y));
     if (SetBuilder::Instance().results.size() > 0 && ImGui::BeginTable("ResultsTable", _resultsColumnHeaders.size(), flags, outer_size)) {
@@ -212,13 +217,12 @@ void SolveTab::drawResultsTab() {
         }
         ImGui::TableHeadersRow();
 
+        ImGui::BeginDisabled(SetBuilder::Instance().isSolving);
         for (auto& result : SetBuilder::Instance().results) {
             int col = 0;
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(col++);
-            stringstream gcdStream;
-            gcdStream << fixed << setprecision(2) << result.second.gcdInt / 100.0f;
-            if (ImGui::Selectable(gcdStream.str().c_str(), false, ImGuiSelectableFlags_SpanAllColumns) && !SetBuilder::Instance().isSolving) {
+            if (ImGui::HandSelectable(result.second.gcdStr().c_str(), false, ImGuiSelectableFlags_SpanAllColumns) && !SetBuilder::Instance().isSolving) {
                 selectResult(result.second);
             }
             if (_selectedResult.gcdInt == result.second.gcdInt) {
@@ -245,6 +249,7 @@ void SolveTab::drawResultsTab() {
             }
             ImGui::TextUnformatted(foodName.c_str());
         }
+        ImGui::EndDisabled();
         ImGui::EndTable();
     }
 }
@@ -296,11 +301,14 @@ void SolveTab::drawSelectedResultModal() {
         }
 
         ImGui::Separator();
-        float off = (ImGui::GetContentRegionAvail().x - 120) * 0.5f;
-        if (off > 0.0f)
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-        if (ImGui::Button("Close", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+        float off = (ImGui::GetContentRegionAvail().x - 320 - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+        if (off > 0.0f) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+        drawClipboardButton("XivGear Export", [this] { return _selectedResult.toJson(); }, ImVec2(160, 0));
+
+        ImGui::SameLine();
+        if (ImGui::HandButton("Close", ImVec2(160, 0))) { ImGui::CloseCurrentPopup(); }
         ImGui::SetItemDefaultFocus();
+
         ImGui::EndPopup();
     }
 
@@ -321,11 +329,15 @@ void SolveTab::drawSolveButton() {
     if (_selectedFoodIdx.size() == 0) solveButtonErrorMessages.push_back("No food selected");
     if (SetBuilder::Instance().isSolving) solveButtonErrorMessages.push_back("Solve is already ongoing");
     ImGui::BeginDisabled(solveButtonErrorMessages.size() > 0);
-    if (ImGui::Button("Solve")) {
+    if (ImGui::HandButton("Solve")) {
         filterSelection();
         if (solveButtonErrorMessages.size() == 0) {
             _selectResultsTab = true;
-            SetBuilder::Instance().startSolve(*_selectedJob, 100, _gearPiecesFiltered, _foodFiltered, _releventMateriaBaseParam);
+            _resultGearItemLevelFilter[0] = _gearItemLevelFilter[0];
+            _resultGearItemLevelFilter[1] = _gearItemLevelFilter[1];
+            _resultFoodItemLevelFilter[0] = _foodItemLevelFilter[0];
+            _resultFoodItemLevelFilter[1] = _foodItemLevelFilter[1];
+            SetBuilder::Instance().startSolve(_selectedJob, 100, _gearPiecesFiltered, _foodFiltered, _releventMateriaBaseParam);
             // TODO: pass selected level
         }
     }
@@ -343,9 +355,25 @@ void SolveTab::drawSolveButton() {
 
     if (SetBuilder::Instance().isSolving) {
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) {
+        if (ImGui::HandButton("Cancel")) {
             SetBuilder::Instance().cancelSolve();
         }
+    }
+}
+
+void SolveTab::drawClipboardButton(const char* label, function<string()> textProvider, const ImVec2& size) {
+    if (ImGui::HandButton(label, size)) {
+        ImGui::LogToClipboard();
+        ImGui::LogText(textProvider().c_str());
+        ImGui::LogFinish();
+        _clipboardExportUntil = ImGui::GetTime() + 1.0;
+    }
+    if (ImGui::BeginItemTooltip()) {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        const bool copied = ImGui::GetTime() < _clipboardExportUntil;
+        ImGui::TextUnformatted(copied ? "Copied to Clipboard!": "Copy to Clipboard");
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
     }
 }
 
@@ -510,4 +538,33 @@ void SolveTab::filterSelection() {
     for (auto idx : _selectedFoodIdx) {
         _foodFiltered.push_back(_foodToDisplay[idx]);
     }
+}
+
+string SolveTab::resultsToJson() {
+    if (SetBuilder::Instance().results.size() == 0) return "";
+
+    const Job* job = SetBuilder::Instance().results.begin()->second.selectedJob;
+
+    stringstream resultJson;
+    resultJson << "{"
+               << "\"name\":\"" << job->name << "\","
+               << "\"sets\":[";
+
+    for (auto it = SetBuilder::Instance().results.begin(); it != SetBuilder::Instance().results.end(); it++) {
+        if (it != SetBuilder::Instance().results.begin()) resultJson << ",";
+        resultJson << it->second.toJson();
+    }
+
+    resultJson << "],"
+               << "\"level\":" << 100 << ","
+               << "\"job\":\"" << job->name << "\","
+               << "\"partyBonus\":" << 5 << ","
+               << "\"itemDisplaySettings\":{"
+               <<     "\"minILvl\":" << _resultGearItemLevelFilter[0] << ","
+               <<     "\"maxILvl\":" << _resultGearItemLevelFilter[1] << ","
+               <<     "\"minILvlFood\":" << _resultFoodItemLevelFilter[0] << ","
+               <<     "\"maxILvlFood\":" << _resultFoodItemLevelFilter[1] << "}"
+               << "}";
+
+    return resultJson.str();
 }

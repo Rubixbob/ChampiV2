@@ -22,7 +22,7 @@ class MeldSolver
 {
 public:
 	MeldSolver();
-	MeldSolver(const Job* job, vector<GearPiece*> gearPieces, vector<Food*> foodList, vector<int> releventMateriaBaseParam, atomic_int* activeThreads, stop_token stopToken);
+	MeldSolver(Job* job, vector<GearPiece*> gearPieces, vector<Food*> foodList, vector<int> releventMateriaBaseParam, atomic_int* activeThreads, stop_token stopToken);
 	virtual ~MeldSolver();
 
 	vector<GearPiece*> gearPieces;

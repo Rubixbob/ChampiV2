@@ -5,8 +5,11 @@
 #include <vector>
 #include <thread>
 #include <algorithm>
+#include <functional>
 
 #include "../ImGui/imgui.h"
+
+#include "CustomElements.h"
 
 #include "../Entities/Data.h"
 #include "../Entities/GearPiece.h"
@@ -51,12 +54,17 @@ private:
 	GearSet _selectedResult;
     int _selectedResultSlots;
 
+    int _resultGearItemLevelFilter[2] = { -1, -1 };
+    int _resultFoodItemLevelFilter[2] = { -1, -1 };
+    double _clipboardExportUntil = 0.0;
+
     void drawGearTab();
     void drawFoodTab();
     void drawResultsTab();
     void selectResult(const GearSet& result);
     void drawSelectedResultModal();
     void drawSolveButton();
+    void drawClipboardButton(const char* label, function<string()> textProvider, const ImVec2& size = ImVec2(0, 0));
 
     void selectJob();
     void initGearList();
@@ -67,4 +75,6 @@ private:
     void setColumnHeaders();
 
     void filterSelection();
+
+    string resultsToJson();
 };

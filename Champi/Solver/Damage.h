@@ -16,7 +16,7 @@ public:
 	virtual ~Damage();
 	static Damage& Instance() { return _instance; }
 
-	void init(const Job& job, int level);
+	void init(Job* job, int level);
 
 	float wdMod(int wd);
 	float mainStatMod(int mainStat);

@@ -31,8 +31,7 @@ void SettingsTab::draw()
 		if (ImGui::IsItemEdited()) Settings::Instance().writeSettingsFile();
         ImGui::TableSetColumnIndex(col++);
         ImGui::TextDisabled("(?)");
-        if (ImGui::BeginItemTooltip())
-        {
+        if (ImGui::BeginItemTooltip()) {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
             ImGui::TextUnformatted("Maximum number of parallel workers used for solving.\n"
                 "A higher value makes solving faster but increases CPU usage.\n"
@@ -52,8 +51,7 @@ void SettingsTab::draw()
         if (ImGui::IsItemEdited()) Settings::Instance().writeSettingsFile();
         ImGui::TableSetColumnIndex(col++);
         ImGui::TextDisabled("(?)");
-        if (ImGui::BeginItemTooltip())
-        {
+        if (ImGui::BeginItemTooltip()) {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
             ImGui::TextUnformatted("Minimum ratio of materia value allowed when the full value can't be applied.\n"
                 "Setting this to 1 may result in some interesting sets to be ignored,\n"

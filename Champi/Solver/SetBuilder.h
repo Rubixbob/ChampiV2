@@ -37,7 +37,7 @@ public:
 
 	map<int, GearSet> results;
 
-	void startSolve(const Job& job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
+	void startSolve(Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
 	void cancelSolve();
 private:
 	static SetBuilder _instance;
@@ -52,7 +52,7 @@ private:
 	int _switchCounter;
 	int _maxCounter;
 
-	void solve(stop_token stopToken, const Job& job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
+	void solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
 	vector<GearPiece*> initGear(const map<int, vector<GearPiece*>>& gearPieces);
 	void switchGear(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve);
 	void switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve, int slot);

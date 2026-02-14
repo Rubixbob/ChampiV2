@@ -152,6 +152,7 @@
     <ClCompile Include="Solver\MeldSolver.cpp" />
     <ClCompile Include="Solver\SetBuilder.cpp" />
     <ClCompile Include="Solver\Settings.cpp" />
+    <ClCompile Include="UI\CustomElements.cpp" />
     <ClCompile Include="UI\SettingsTab.cpp" />
     <ClCompile Include="UI\MainWindow.cpp" />
     <ClCompile Include="UI\SolveTab.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="Solver\MeldSolver.h" />
     <ClInclude Include="Solver\SetBuilder.h" />
     <ClInclude Include="Solver\Settings.h" />
+    <ClInclude Include="UI\CustomElements.h" />
     <ClInclude Include="UI\SettingsTab.h" />
     <ClInclude Include="UI\MainWindow.h" />
     <ClInclude Include="UI\SolveTab.h" />

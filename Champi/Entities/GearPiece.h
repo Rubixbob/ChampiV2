@@ -55,7 +55,6 @@ public:
 		{3, "Head"},
 		{4, "Body"},
 		{5, "Hands"},
-		{6, "Waist"},
 		{7, "Legs"},
 		{8, "Feet"},
 		{9, "Earrings"},
@@ -63,6 +62,26 @@ public:
 		{11, "Bracelets"},
 		{12, "Ring"},
 		{13, "Weapon"}
+	};
+
+	inline static const map<int, string> equipSlotXivGearName = {
+		{1, "Weapon"},
+		{2, "OffHand"},
+		{3, "Head"},
+		{4, "Body"},
+		{5, "Hand"},
+		{7, "Legs"},
+		{8, "Feet"},
+		{9, "Ears"},
+		{10, "Neck"},
+		{11, "Wrist"},
+		{12, "Ring"},
+		{13, "Weapon"}
+	};
+
+	inline static const map<int, string> equipSlotXivGearRingSuffix = {
+		{0, "Right"},
+		{1, "Left"}
 	};
 
 	void setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList);

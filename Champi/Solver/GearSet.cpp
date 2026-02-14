@@ -19,7 +19,7 @@ GearSet::~GearSet()
 
 void GearSet::initStats(const Job* job)
 {
-    _job = job;
+    selectedJob = job;
     damagePhys = 0;
     damageMag = 0;
     delayms = 0;
@@ -103,7 +103,7 @@ float GearSet::fedMeldedDamageMod() {
 }
 
 float GearSet::calcDamageMod(const map<int, int>& baseParamValue) {
-    auto result = (_job->role == 1) ?
+    auto result = (selectedJob->role == 1) ?
         Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(22), baseParamValue.at(27), baseParamValue.at(44), baseParamValue.at(19)) :
         Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(22), baseParamValue.at(27), baseParamValue.at(44));
     damageMod = result;
@@ -123,8 +123,59 @@ int GearSet::fedMeldedGcd() {
 }
 
 int GearSet::gcd(const map<int, int>& baseParamValue) {
-    int ssBaseParam = _job->primaryStat == 4 || _job->primaryStat == 5 ? 46 : 45;
+    int ssBaseParam = selectedJob->primaryStat == 4 || selectedJob->primaryStat == 5 ? 46 : 45;
     auto result = Damage::Instance().gcd(baseParamValue.at(ssBaseParam));
     gcdInt = result;
     return result;
+}
+
+string GearSet::gcdStr() {
+    stringstream gcdStream;
+    gcdStream << fixed << setprecision(2) << gcdInt / 100.0f;
+    return gcdStream.str();
+}
+
+string GearSet::toJson() {
+    stringstream setJson;
+    setJson << "{"
+            << "\"name\":\"" << gcdStr() << "\","
+            << "\"items\":{";
+
+    int ringIdx = 0;
+    for (int i = 0; i < meldPerms.size(); i++) {
+        auto& perm = meldPerms[i];
+        auto piece = perm->gearPiece;
+
+        if (i > 0) setJson << ",";
+
+        setJson << "\"" << GearPiece::equipSlotXivGearName.at(piece->equipSlotCategory);
+
+        if (piece->equipSlotCategory == 12) {
+            setJson << GearPiece::equipSlotXivGearRingSuffix.at(ringIdx);
+            ringIdx++;
+        }
+
+        setJson << "\":{"
+                << "\"id\":" << piece->id << ","
+                << "\"materia\":[";
+
+        for (int j = 0; j < 5; j++) {
+            auto materia = perm->materia[j];
+            if (materia == nullptr) break;
+
+            if (j > 0) setJson << ",";
+
+            setJson << "{\"id\":" << materia->id << "}";
+        }
+
+        setJson << "]}";
+    }
+
+    setJson << "},"
+            << "\"food\":" << selectedFood->id << ","
+            << "\"job\":\"" << selectedJob->name << "\","
+            << "\"level\":" << 100 << ","
+            << "\"partyBonus\":" << 5 << "}";
+
+    return setJson.str();
 }
