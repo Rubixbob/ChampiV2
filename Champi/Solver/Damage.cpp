@@ -58,7 +58,7 @@ void Damage::init(Job* job, int level) {
 
     // TODO: Get data from file ItemLevel
     for (int i = 0; i <= 158; i++) { // Max PhysicalDamage
-        _wdMod.emplace_back(_lvlModMain * _jobMod / 1000 + i);
+        _wdMod.emplace_back((float)(_lvlModMain * _jobMod / 1000 + i));
     }
     for (int i = 0; i <= 6887; i++) { // (_lvlModMain * primaryStatMod + max strength) * 1.05
         _mainStatMod.emplace_back((100 + (_lvlModAP * (i - _lvlModMain) / _lvlModMain)) / 100.0f);
@@ -68,7 +68,7 @@ void Damage::init(Job* job, int level) {
         _critMod.emplace_back((50 + (i - _lvlModSub) * 200 / _lvlModDiv) / 1000.0f * (400 + (i - _lvlModSub) * 200 / _lvlModDiv) / 1000.0f + 1);
         _detMod.emplace_back((1000 + (i - _lvlModMain) * 140 / _lvlModDiv) / 1000.0f);
         _tenMod.emplace_back((1000 + (i - _lvlModSub) * 112 / _lvlModDiv) / 1000.0f);
-        _gcd.emplace_back(floor(floor(2.5f * (1000 - (130 * (i - _lvlModSub) / _lvlModDiv))) * (100 - _haste) / 1000.0f));
+        _gcd.emplace_back((int)floor(floor(2.5f * (1000 - (130 * (i - _lvlModSub) / _lvlModDiv))) * (100 - _haste) / 1000.0f));
     }
 }
 

@@ -384,11 +384,11 @@ vector<string> FileReader::readLine(ifstream& itemFile) {
     getline(itemFile, itemLine);
 
     while (itemLine.size() > 0) {
-        int tokenStart = 0;
-        int tokenSize = 0;
-		int delimiterIdx = 0;
+        size_t tokenStart = 0;
+        size_t tokenSize = 0;
+        size_t delimiterIdx = 0;
         if (itemLine[0] == '"') {
-            int quoteEnd = itemLine.find('"', 1);
+            auto quoteEnd = itemLine.find('"', 1);
             while (quoteEnd == -1) {
 				string additionalLine;
                 getline(itemFile, additionalLine);

@@ -72,7 +72,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
     // Build all meld permutations
     int baseParamIdx[5] = { 0 }; // Index of what materia to use for each slot
     set<string> permStats;
-	int materiaIgnorePercent = Settings::Instance().minMateriaRatio;
+	float materiaIgnorePercent = Settings::Instance().minMateriaRatio;
     bool done = false;
     while (!done) {
         MeldPerm perm;

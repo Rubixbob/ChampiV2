@@ -45,11 +45,11 @@ private:
     map<int, vector<GearPiece*>> _gearPiecesToDisplay;
     int _gearPiecesToDisplayCount;
     int _gearPiecesToDisplaySlotCount;
-    map<int, set<int>> _selectedGearPieces;
+    map<int, set<size_t>> _selectedGearPieces;
     map<int, vector<GearPiece*>> _gearPiecesFiltered;
     vector<Food*> _selectedJobFood;
     vector<Food*> _foodToDisplay;
-    set<int> _selectedFoodIdx;
+    set<size_t> _selectedFoodIdx;
     vector<Food*> _foodFiltered;
 	GearSet _selectedResult;
     int _selectedResultSlots;

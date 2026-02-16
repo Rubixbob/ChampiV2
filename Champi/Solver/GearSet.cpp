@@ -46,7 +46,7 @@ void GearSet::initStats(const Job* job)
     }
 
     // Party bonus
-    mainBaseParamValue *= 1.05f;
+    mainBaseParamValue = (int)(mainBaseParamValue * 1.05f);
 }
 
 void GearSet::updateMeldedStats() {

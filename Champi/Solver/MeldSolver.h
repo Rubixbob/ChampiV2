@@ -40,11 +40,11 @@ private:
 
 	atomic_int* _solveActiveThreads = nullptr;
 
-	int _switchCounter = 0;
-	int _maxCounter = 1;
+	size_t _switchCounter = 0;
+	size_t _maxCounter = 1;
 
 	uint64_t getSaveKey(const map<int, vector<int>>& slots);
 	uint64_t getSaveKey(const map<int, map<int, int>>& slots, const vector<int>& materiaGrades, const map<int, int>& materiaBaseParamToIdx);
 	void checkAndSaveSet(GearSet& gearSet);
-	void switchToNextCombination(const vector<int>& materiaGrades, const map<int, int>& maxMeldSlots, map<int, vector<int>>& meldComb, int lastBaseParam, int secondToLastBaseParam);
+	void switchToNextCombination(const vector<int>& materiaGrades, const map<int, int>& maxMeldSlots, map<int, vector<int>>& meldComb, size_t lastBaseParam, size_t secondToLastBaseParam);
 };

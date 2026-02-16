@@ -32,8 +32,8 @@ public:
 
 	bool isSolving = false;
 	float solvingProgress = 0.0f;
-	long long estimatedRemaining = 0;
-	long long solvingTime = 0;
+	int64_t estimatedRemaining = 0;
+	int64_t solvingTime = 0;
 
 	map<int, GearSet> results;
 
@@ -45,12 +45,12 @@ private:
 	jthread _solveThread;
 
 	vector<int> _equipSlots;
-	map<int, int> _gearPieceCounter;
-	vector<int> _gearPieceIdx;
-	map<int, int> _gearPieceSlotToIdx;
-	int _ringPerms;
-	int _switchCounter;
-	int _maxCounter;
+	map<int, size_t> _gearPieceCounter;
+	vector<size_t> _gearPieceIdx;
+	map<int, size_t> _gearPieceSlotToIdx;
+	size_t _ringPerms;
+	size_t _switchCounter;
+	size_t _maxCounter;
 
 	void solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
 	vector<GearPiece*> initGear(const map<int, vector<GearPiece*>>& gearPieces);

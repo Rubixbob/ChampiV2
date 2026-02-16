@@ -56,9 +56,9 @@ void MeldSolver::findBestMelds() {
         return;
     }
 
-    int highestGrade = materiaGrades[materiaGrades.size() - 1];
-    int lastBaseParam = _releventMateriaBaseParam.size() - 1;
-    int secondToLastBaseParam = _releventMateriaBaseParam.size() - 2;
+    auto highestGrade = materiaGrades[materiaGrades.size() - 1];
+    auto lastBaseParam = _releventMateriaBaseParam.size() - 1;
+    auto secondToLastBaseParam = _releventMateriaBaseParam.size() - 2;
 
     // Materia slots init
     map<int, vector<int>> availableSlots;
@@ -133,8 +133,8 @@ void MeldSolver::findBestMelds() {
 
         if (possible) {
             // Find melds
-            vector<int> currentPerm(gearPieces.size());
-            vector<int> savedPerm(gearPieces.size());
+            vector<size_t> currentPerm(gearPieces.size());
+            vector<size_t> savedPerm(gearPieces.size());
             int idx = 0;
             int score = 0;
             int savedScore = 0;
@@ -155,13 +155,13 @@ void MeldSolver::findBestMelds() {
                     if (!useful) break;
                 }
                 if (useful) {
-                    int currentSaveKey = getSaveKey(neededSlots);
-                    int currentSavedScore = savedScores.contains(currentSaveKey) ? savedScores[currentSaveKey] : -1;
-                    int nextScoreGoal = currentSavedScore;
+                    auto currentSaveKey = getSaveKey(neededSlots);
+                    auto currentSavedScore = savedScores.contains(currentSaveKey) ? savedScores[currentSaveKey] : -1;
+                    auto nextScoreGoal = currentSavedScore;
                     for (auto& it : perm.baseParamMatValue) {
                         nextScoreGoal -= it.second;
                     }
-                    int nextSaveKey = currentSaveKey - getSaveKey(perm.baseParamMatCount, materiaGrades, materiaBaseParamToIdx);
+                    auto nextSaveKey = currentSaveKey - getSaveKey(perm.baseParamMatCount, materiaGrades, materiaBaseParamToIdx);
 
                     if (scoreGiven) {
                         if (idx < gearPieces.size() - 1 && (!savedScores.contains(nextSaveKey) || savedScores[nextSaveKey] < nextScoreGoal)) {
@@ -202,7 +202,7 @@ void MeldSolver::findBestMelds() {
                             }
                         }
                         bool saving = true;
-                        for (int j = gearPieces.size() - 1; j >= 0; j--) {
+                        for (int64_t j = static_cast<int64_t>(gearPieces.size() - 1); j >= 0; j--) {
                             // Save score on the path
                             for (auto& baseParamIt : gearPieces[j]->meldPerms[currentPerm[j]].baseParamMatValue) {
                                 score += baseParamIt.second;
@@ -212,7 +212,7 @@ void MeldSolver::findBestMelds() {
                                     path[gradeIt.first][materiaBaseParamToIdx[baseParamIt.first]] += baseParamIt.second;
                                 }
                             }
-                            int saveKey = getSaveKey(path);
+                            auto saveKey = getSaveKey(path);
                             if (saving && savedScores.contains(saveKey) && score < savedScores[saveKey]) {
                                 saving = false;
                             }
@@ -248,7 +248,7 @@ void MeldSolver::findBestMelds() {
                     currentPerm[idx]++;
                     while (idx >= 0 && (currentPerm[idx] >= piece->meldPerms.size())) {
                         currentPerm[idx] = 0;
-                        int saveKey = getSaveKey(neededSlots);
+                        auto saveKey = getSaveKey(neededSlots);
                         if (!savedScores.contains(saveKey)) {
                             savedScores[saveKey] = 0;
                         } else if (savedScores[saveKey] == scoreGoal) {
@@ -319,7 +319,7 @@ uint64_t MeldSolver::getSaveKey(const map<int, map<int, int>>& slots, const vect
     for (int idx = 0; idx < materiaGrades.size(); idx++) {
         auto grade = materiaGrades[idx];
         if (!slots.contains(grade)) continue;
-        int cpt = idx * materiaBaseParamToIdx.size();
+        auto cpt = idx * materiaBaseParamToIdx.size();
         for (auto& baseParamIt : slots.at(grade)) {
             key |= baseParamIt.second << ((cpt + materiaBaseParamToIdx.at(baseParamIt.first)) * 6);
         }
@@ -344,7 +344,7 @@ void MeldSolver::checkAndSaveSet(GearSet& gearSet) {
     }
 }
 
-void MeldSolver::switchToNextCombination(const vector<int>& materiaGrades, const map<int, int>& maxMeldSlots, map<int, vector<int>>& meldComb, int lastBaseParam, int secondToLastBaseParam) {
+void MeldSolver::switchToNextCombination(const vector<int>& materiaGrades, const map<int, int>& maxMeldSlots, map<int, vector<int>>& meldComb, size_t lastBaseParam, size_t secondToLastBaseParam) {
     int grade = materiaGrades[0];
     auto& meldCombGrade = meldComb[grade];
     if (meldCombGrade[secondToLastBaseParam] + meldCombGrade[lastBaseParam] == maxMeldSlots.at(grade)) meldCombGrade[lastBaseParam]++;

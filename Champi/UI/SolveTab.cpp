@@ -60,7 +60,7 @@ void SolveTab::drawGearTab() {
 
     ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp;
     ImVec2 outer_size = ImVec2(0.0f, min(ImGui::GetFrameHeight() + _gearPiecesToDisplayCount * (ImGui::GetTextLineHeight() + ImGui::GetStyle().CellPadding.y * 2.0f) + (_gearPiecesToDisplaySlotCount - 1) * 8 - 2, ImGui::GetContentRegionAvail().y));
-    if (_gearPiecesToDisplayCount > 0 && ImGui::BeginTable("ItemsTable", _gearColumnHeaders.size(), flags, outer_size)) {
+    if (_gearPiecesToDisplayCount > 0 && ImGui::BeginTable("ItemsTable", static_cast<int>(_gearColumnHeaders.size()), flags, outer_size)) {
         ImGui::TableSetupScrollFreeze(0, 1);
         for (const auto& header : _gearColumnHeaders) {
             ImGui::TableSetupColumn(header.c_str());
@@ -134,7 +134,7 @@ void SolveTab::drawFoodTab() {
 
     ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp;
     ImVec2 outer_size = ImVec2(0.0f, min(ImGui::GetFrameHeight() + _foodToDisplay.size() * (ImGui::GetTextLineHeight() + ImGui::GetStyle().CellPadding.y * 2.0f) - 2, ImGui::GetContentRegionAvail().y));
-    if (_foodToDisplay.size() > 0 && ImGui::BeginTable("FoodTable", _foodColumnHeaders.size(), flags, outer_size)) {
+    if (_foodToDisplay.size() > 0 && ImGui::BeginTable("FoodTable", static_cast<int>(_foodColumnHeaders.size()), flags, outer_size)) {
         ImGui::TableSetupScrollFreeze(0, 1);
         for (const auto& header : _foodColumnHeaders) {
             ImGui::TableSetupColumn(header.c_str());
@@ -210,7 +210,7 @@ void SolveTab::drawResultsTab() {
 
     ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp;
     ImVec2 outer_size = ImVec2(0.0f, min(ImGui::GetFrameHeight() + SetBuilder::Instance().results.size() * (ImGui::GetTextLineHeight() + ImGui::GetStyle().CellPadding.y * 2.0f) - 2, ImGui::GetContentRegionAvail().y));
-    if (SetBuilder::Instance().results.size() > 0 && ImGui::BeginTable("ResultsTable", _resultsColumnHeaders.size(), flags, outer_size)) {
+    if (SetBuilder::Instance().results.size() > 0 && ImGui::BeginTable("ResultsTable", static_cast<int>(_resultsColumnHeaders.size()), flags, outer_size)) {
         ImGui::TableSetupScrollFreeze(0, 1);
         for (const auto& header : _resultsColumnHeaders) {
             ImGui::TableSetupColumn(header.c_str());

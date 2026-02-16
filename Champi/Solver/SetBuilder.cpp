@@ -62,17 +62,17 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
     _switchCounter = 0;
     atomic_int activeThreads = 0;
     auto gearPiecesToSolve = initGear(gearPieces);
-    deque<int> meldSolversReadyIdx;
-    set<int> meldSolversToSave;
+    deque<size_t> meldSolversReadyIdx;
+    set<size_t> meldSolversToSave;
     MeldSolver defaultMeldSolver(job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
-    map<int, MeldSolver> meldSolvers;
-    map<int, jthread> threads;
+    map<size_t, MeldSolver> meldSolvers;
+    map<size_t, jthread> threads;
     //int foodMaxSks = 0;
     //for (unsigned int i = 0; i < m_foods.size(); i++) {
     //    if (m_foods[i].cap[3] > foodMaxSks)
     //        foodMaxSks = m_foods[i].cap[3];
     //}
-    int resultMeldSolverIdx = -1;
+    int64_t resultMeldSolverIdx = -1;
     map<int, GearSet>::iterator resultSetIt;
     while (!stopToken.stop_requested() && (_gearPieceCounter[12] < _ringPerms || meldSolversToSave.size() > 0)) {
         if (activeThreads < maxHardwareThreads && meldSolversReadyIdx.size() > 0) {
@@ -119,9 +119,9 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
         } else {
             // Go through meldSolvers
             float partialProgress = 0.0f;
-            for (int idx : meldSolversToSave) {
+            for (auto idx : meldSolversToSave) {
                 if (meldSolvers[idx].done) {
-                    resultMeldSolverIdx = idx;
+                    resultMeldSolverIdx = static_cast<int64_t>(idx);
                     resultSetIt = meldSolvers[idx].results.begin();
                     //break;
                 } else {
@@ -131,7 +131,7 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
             solvingProgress = (_switchCounter + partialProgress) / _maxCounter;
             auto currentTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
             auto elapsed = currentTime - startTime;
-            estimatedRemaining = (1 / solvingProgress - 1) * elapsed;
+            estimatedRemaining = (int64_t)((1 / solvingProgress - 1) * elapsed);
             // If no result to check, sleep
             if (resultMeldSolverIdx < 0) {
                 this_thread::sleep_for(milliseconds(1));
@@ -180,7 +180,7 @@ void SetBuilder::switchGear(const map<int, vector<GearPiece*>>& gearPieces, vect
 }
 
 void SetBuilder::switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve, int slot) {
-    int pieceIdx = _gearPieceSlotToIdx[slot];
+    auto pieceIdx = _gearPieceSlotToIdx[slot];
     auto& slotPieces = gearPieces.at(slot);
     if (slot < 12) {
         _gearPieceIdx[pieceIdx] = (_gearPieceIdx[pieceIdx] + 1) % slotPieces.size();

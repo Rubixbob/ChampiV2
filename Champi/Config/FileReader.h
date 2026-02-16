@@ -108,11 +108,11 @@ private:
         46
     };
 
-    map<int, int> _itemToMateriaIdx;
-    map<int, int> _itemFoodIdToIdx;
-    map<int, int> _itemActionIdToItemFoodIdx;
+    map<int, size_t> _itemToMateriaIdx;
+    map<int, size_t> _itemFoodIdToIdx;
+    map<int, size_t> _itemActionIdToItemFoodIdx;
     map<int, vector<int>> _materiaOvermeldPercent;
-    map<string, int> _classJobNameToIdx;
+    map<string, size_t> _classJobNameToIdx;
 
     bool readFile(FileType fileType);
 	void handleLine(FileType fileType, const vector<string>& attributes, map<string, int>& col);

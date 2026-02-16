@@ -182,7 +182,7 @@ void SettingsTab::drawItemTable() {
     }
 	ImGui::Separator();
 
-    if (!_isApplyingFilters && _itemsToDisplay.size() > 0 && ImGui::BeginTable("ItemTable", _columnHeaders.size(), ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+    if (!_isApplyingFilters && _itemsToDisplay.size() > 0 && ImGui::BeginTable("ItemTable", static_cast<int>(_columnHeaders.size()), ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
         for (const auto& header : _columnHeaders) {
             ImGui::TableSetupColumn(header.c_str());
 		}
