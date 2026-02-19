@@ -104,11 +104,14 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
             _switchCounter++;
         } else if (resultMeldSolverIdx >= 0) {
             // Compare 1 result and save (+ delete when done)
-            while (resultSetIt != meldSolvers[resultMeldSolverIdx].results.end() && results.contains(resultSetIt->first) && results[resultSetIt->first].damageMod >= resultSetIt->second.damageMod)
+            while (resultSetIt != meldSolvers[resultMeldSolverIdx].results.end()) {
+                auto [savedResult, emplaced] = results.try_emplace(resultSetIt->first, resultSetIt->second);
+                if (!emplaced && resultSetIt->second.damageMod > savedResult->second.damageMod) {
+                    savedResult->second = resultSetIt->second;
+                    emplaced = true;
+                }
                 resultSetIt++;
-            if (resultSetIt != meldSolvers[resultMeldSolverIdx].results.end()) {
-                results[resultSetIt->first] = resultSetIt->second;
-                resultSetIt++;
+                if (!emplaced) break;
             }
             if (resultSetIt == meldSolvers[resultMeldSolverIdx].results.end()) {
                 meldSolversToSave.erase(resultMeldSolverIdx);

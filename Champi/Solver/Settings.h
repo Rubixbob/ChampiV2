@@ -17,7 +17,7 @@ public:
 	static Settings& Instance() { return _instance; }
 
 	int maxParallelWorkers = thread::hardware_concurrency();
-	float minMateriaRatio = 0.5f;
+	float minMateriaRatio = 0.8f;
 
 	bool readSettingsFile();
 	void writeSettingsFile();

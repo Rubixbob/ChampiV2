@@ -5,43 +5,30 @@ GearSet::GearSet()
     //ctor
 }
 
-GearSet::GearSet(vector<GearPiece*> gearPieces)
-{
-    for (auto piece : gearPieces) {
-        meldPerms.push_back(&piece->meldPerms[0]);
-    }
-}
-
-GearSet::~GearSet()
-{
-    //dtor
-}
-
-void GearSet::initStats(const Job* job)
+GearSet::GearSet(const Job* job, const vector<GearPiece*>& gearPieces)
 {
     selectedJob = job;
-    damagePhys = 0;
-    damageMag = 0;
-    delayms = 0;
     mainBaseParamValue = Damage::Instance().getLvlModMain() * job->primaryStatMod / 100;
-    setBaseParamValue[22] = Damage::Instance().getLvlModSub(); // DH
-    setBaseParamValue[27] = Damage::Instance().getLvlModSub(); // CRIT
-    setBaseParamValue[44] = Damage::Instance().getLvlModMain(); // DET
+    meldedBaseParamValue[22] = Damage::Instance().getLvlModSub(); // DH
+    meldedBaseParamValue[27] = Damage::Instance().getLvlModSub(); // CRIT
+    meldedBaseParamValue[44] = Damage::Instance().getLvlModMain(); // DET
     int ssBaseParam = job->primaryStat == 4 || job->primaryStat == 5 ? 46 : 45;
-    setBaseParamValue[ssBaseParam] = Damage::Instance().getLvlModSub(); // SS
-    if (job->role == 1) setBaseParamValue[19] = Damage::Instance().getLvlModSub(); // TNC
-    if (job->role == 4) setBaseParamValue[6] = Damage::Instance().getLvlModSub(); // PIE
+    meldedBaseParamValue[ssBaseParam] = Damage::Instance().getLvlModSub(); // SS
+    if (job->role == 1) meldedBaseParamValue[19] = Damage::Instance().getLvlModSub(); // TNC
+    if (job->role == 4) meldedBaseParamValue[6] = Damage::Instance().getLvlModSub(); // PIE
 
-    for (auto perm : meldPerms) {
-        auto piece = perm->gearPiece;
+    for (auto piece : gearPieces) {
         damagePhys += piece->damagePhys;
         damageMag += piece->damageMag;
         delayms += piece->delayms;
         for (int i = 0; i < 6; i++) {
-            if (piece->baseParam[i] == 0) break;
-            if (piece->baseParam[i] == 3) continue; // Ignore Vitality
-            if (piece->baseParam[i] == job->primaryStat) mainBaseParamValue += piece->baseParamValue[i];
-            setBaseParamValue[piece->baseParam[i]] += piece->baseParamValue[i];
+            if (piece->baseParam[i] == job->primaryStat) {
+                mainBaseParamValue += piece->baseParamValue[i];
+            } else {
+                auto meldedBaseParamIt = meldedBaseParamValue.find(piece->baseParam[i]);
+                if (meldedBaseParamIt == meldedBaseParamValue.end()) continue;
+                meldedBaseParamIt->second += piece->baseParamValue[i];
+            }
         }
     }
 
@@ -49,49 +36,55 @@ void GearSet::initStats(const Job* job)
     mainBaseParamValue = (int)(mainBaseParamValue * 1.05f);
 }
 
-void GearSet::updateMeldedStats() {
-    for (auto& it : setBaseParamValue) {
-        meldedBaseParamValue[it.first] = it.second;
-    }
+GearSet::~GearSet()
+{
+    //dtor
+}
 
-    for (auto perm : meldPerms) {
-        for (auto& baseParamIt : perm->baseParamMatValue) {
-            meldedBaseParamValue[baseParamIt.first] += baseParamIt.second;
-        }
+void GearSet::addMeldPerm(MeldPerm* meldPerm) {
+    meldPerms.push_back(meldPerm);
+
+    for (auto& baseParamIt : meldPerm->baseParamMatValue) {
+        meldedBaseParamValue[baseParamIt.first] += baseParamIt.second;
     }
 }
 
-void GearSet::updateMeldedStats(const map<int, vector<int>>& meldComb, const vector<int>& releventMateriaBaseParam) {
-    for (auto& it : setBaseParamValue) {
-        meldedBaseParamValue[it.first] = it.second;
-    }
+void GearSet::popMeldPerm() {
+    auto meldPerm = meldPerms.back();
+    meldPerms.pop_back();
 
-    for (auto& gradeIt : meldComb) {
-        int value = Materia::valueByGrade[gradeIt.first];
-        for (int idx = 0; idx < gradeIt.second.size(); idx++) {
-            int matCount = gradeIt.second[idx];
-            if (matCount == 0) continue;
-            meldedBaseParamValue[releventMateriaBaseParam[idx]] += matCount * value;
-        }
+    for (auto& baseParamIt : meldPerm->baseParamMatValue) {
+        meldedBaseParamValue[baseParamIt.first] -= baseParamIt.second;
     }
 }
 
-void GearSet::updateFedMeldedStats(Food* food) {
+void GearSet::addFood(Food* food) {
     selectedFood = food;
-
-    for (auto& it : meldedBaseParamValue) {
-        fedMeldedBaseParamValue[it.first] = it.second;
-    }
 
     for (int i = 0; i < 3; i++) {
         if (food->baseParam[i] == 3) continue; // Ignore Vitality
-
-        fedMeldedBaseParamValue[food->baseParam[i]] += min((int) (fedMeldedBaseParamValue[food->baseParam[i]] * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
+        
+        auto baseParamIt = fedMeldedBaseParamValue.find(food->baseParam[i]);
+        if (baseParamIt == fedMeldedBaseParamValue.end()) continue;
+        baseParamIt->second += min((int)(baseParamIt->second * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
     }
 }
 
-float GearSet::setDamageMod() {
-    return calcDamageMod(setBaseParamValue);
+void GearSet::popFood() {
+    for (int i = 0; i < 3; i++) {
+        if (selectedFood->baseParam[i] == 3) continue; // Ignore Vitality
+        
+        auto fedBaseParamIt = fedMeldedBaseParamValue.find(selectedFood->baseParam[i]);
+        auto meldedBaseParamIt = meldedBaseParamValue.find(selectedFood->baseParam[i]);
+        if (fedBaseParamIt == fedMeldedBaseParamValue.end() || meldedBaseParamIt == meldedBaseParamValue.end()) continue;
+        fedBaseParamIt->second = meldedBaseParamIt->second;
+    }
+}
+
+void GearSet::initFedMeldedStats() {
+    for (auto& it : meldedBaseParamValue) {
+        fedMeldedBaseParamValue[it.first] = it.second;
+    }
 }
 
 float GearSet::meldedDamageMod() {
@@ -108,10 +101,6 @@ float GearSet::calcDamageMod(const map<int, int>& baseParamValue) {
         Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(22), baseParamValue.at(27), baseParamValue.at(44));
     damageMod = result;
     return result;
-}
-
-int GearSet::setGcd() {
-    return gcd(setBaseParamValue);
 }
 
 int GearSet::meldedGcd() {

@@ -22,7 +22,7 @@ class GearSet
 {
 public:
 	GearSet();
-	GearSet(vector<GearPiece*> gearPieces);
+	GearSet(const Job* job, const vector<GearPiece*>& gearPieces);
 	virtual ~GearSet();
 
 	vector<MeldPerm*> meldPerms;
@@ -35,21 +35,19 @@ public:
 	int damageMag;
 	int delayms;
 
-	map<int, int> setBaseParamValue;
 	map<int, int> meldedBaseParamValue;
 	map<int, int> fedMeldedBaseParamValue;
 	int mainBaseParamValue;
 
-	void initStats(const Job* job);
-	void updateMeldedStats();
-	void updateMeldedStats(const map<int, vector<int>>& meldComb, const vector<int>& releventMateriaBaseParam);
-	void updateFedMeldedStats(Food* food);
+	void addMeldPerm(MeldPerm* meldPerm);
+	void popMeldPerm();
+	void addFood(Food* food);
+	void popFood();
+	void initFedMeldedStats();
 
-	float setDamageMod();
 	float meldedDamageMod();
 	float fedMeldedDamageMod();
 
-	int setGcd();
 	int meldedGcd();
 	int fedMeldedGcd();
 	string gcdStr();
