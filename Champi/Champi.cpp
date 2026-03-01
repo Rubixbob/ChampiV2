@@ -3,6 +3,9 @@
 #include <tchar.h>
 #include <d3d11.h>
 #include <dxgi.h>
+#include <dwmapi.h>
+#include <winrt/Windows.UI.ViewManagement.h>
+#include <winrt/Windows.Foundation.h>
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
@@ -12,6 +15,8 @@
 #pragma comment(lib, "dxgi.lib")
 
 #include "UI/MainWindow.h"
+
+using namespace winrt::Windows::UI::ViewManagement;
 
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
@@ -28,6 +33,11 @@ static void CreateRenderTarget();
 static void CleanupRenderTarget();
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+inline bool IsColorLight(winrt::Windows::UI::Color& clr)
+{
+    return (((5 * clr.G) + (2 * clr.R) + clr.B) > (8 * 128));
+}
+
 // Main code
 int main(int, char**)
 {
@@ -38,7 +48,7 @@ int main(int, char**)
     // Create application window
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Champi", WS_OVERLAPPEDWINDOW, 100, 100, (int)(1280 * main_scale), (int)(800 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Champi", WS_OVERLAPPEDWINDOW, 100, 100, (int)(1280 * main_scale), (int)(867 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -52,6 +62,14 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
+    // Add window icon
+    HICON hIcon = (HICON)LoadImage(wc.hInstance, MAKEINTRESOURCE(101), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+    if (hIcon)
+    {
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    }
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -59,9 +77,24 @@ int main(int, char**)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-    // Setup Dear ImGui style
+	// Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
+
+	// Setup window bar color and dark mode based on current system settings, and listen to changes
+    auto settings = UISettings();
+    auto foreground = settings.GetColorValue(UIColorType::Foreground);
+
+    BOOL isDarkMode = IsColorLight(foreground);
+    auto revoker = settings.ColorValuesChanged([settings, hwnd](auto&&...) {
+        auto foregroundRevoker = settings.GetColorValue(UIColorType::Foreground);
+        BOOL isDarkModeRevoker = IsColorLight(foregroundRevoker);
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &isDarkModeRevoker, sizeof(isDarkModeRevoker));
+    });
+
+    DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &isDarkMode, sizeof(isDarkMode));
+    MARGINS margins = { -1 };
+    DwmExtendFrameIntoClientArea(hwnd, &margins);
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
