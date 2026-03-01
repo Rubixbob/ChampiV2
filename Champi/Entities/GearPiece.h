@@ -47,7 +47,9 @@ public:
 	bool isUnique; // IsUnique
 
 	vector<MeldPerm> meldPerms;
-	map<int, map<int, int>> availableSlots; // Max available slots per grade then per baseParam
+	map<int, int> minBaseParamValue;
+	map<int, int> maxBaseParamValue;
+	map<int, int> maxBaseParamMatValue;
 
 	inline static const map<int, string> equipSlotName = {
 		{1, "Weapon"},

@@ -41,6 +41,12 @@ private:
     int _foodItemLevelFilter[2] = { -1, -1 };
     bool _selectResultsTab = false;
 
+    map<int, bool> _limitBaseParam;
+    map<int, pair<float, float>> _baseParamModRangeSelected;
+    map<int, pair<float, float>> _baseParamModRangeAllowed;
+    map<int, pair<int, int>> _baseParamRangeSelected;
+    map<int, pair<int, int>> _baseParamRangeAllowed;
+
     vector<GearPiece*> _selectedJobGearPieces;
     map<int, vector<GearPiece*>> _gearPiecesToDisplay;
     int _gearPiecesToDisplayCount;
@@ -61,16 +67,22 @@ private:
     void drawGearTab();
     void drawFoodTab();
     void drawResultsTab();
+    void drawTime(string preText, int64_t timeValue);
     void selectResult(const GearSet& result);
     void drawSelectedResultModal();
     void drawSolveButton();
+    void drawLimitBaseParamGroups();
     void drawClipboardButton(const char* label, function<string()> textProvider, const ImVec2& size = ImVec2(0, 0));
 
     void selectJob();
-    void initGearList();
-    void initFoodList();
-    void selectGearItemLvl();
-    void selectFoodItemLvl();
+    void initBaseParamLimits();
+    void updateBaseParamRanges();
+    void updateBaseParamRange(int baseParam);
+    float getModToDisplay(const int& baseParam, const int& value);
+    void initGearList(bool updateRanges = true);
+    void initFoodList(bool updateRanges = true);
+    void selectGearItemLvl(bool updateRanges = true);
+    void selectFoodItemLvl(bool updateRanges = true);
     void setReleventStats();
     void setColumnHeaders();
 

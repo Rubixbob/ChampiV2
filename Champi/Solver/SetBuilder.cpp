@@ -34,17 +34,18 @@ void SetBuilder::cancelSolve() {
     }
 }
 
+void SetBuilder::setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected) {
+    _limitBaseParam = limitBaseParam;
+    _baseParamRangeSelected = baseParamRangeSelected;
+}
+
 void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
     auto startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
-    auto maxHardwareThreads = max(Settings::Instance().maxParallelWorkers - 1, 1);
-    Damage::Instance().init(job, level);
-    for (auto& it : gearPieces) {
-        for (auto& gearPiece : it.second) {
-            gearPiece->setMeldPerms(releventMateriaBaseParam, Data::Instance().materiaList);
-        }
-    }
+    activeThreads = 1;
+    maxHardwareThreads = Settings::Instance().maxParallelWorkers;
 
+    // Counters to track progress and piece switches
     _maxCounter = 1;
     _ringPerms = gearPieces.at(12).size() * (gearPieces.at(12).size() - 1) / 2
         + count_if(gearPieces.at(12).begin(), gearPieces.at(12).end(), [](auto g) { return !g->isUnique; });
@@ -60,48 +61,78 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
         _equipSlots.push_back(slot);
     }
     _switchCounter = 0;
-    atomic_int activeThreads = 0;
+
+    // Base meld solver that will be copied for each thread
     auto gearPiecesToSolve = initGear(gearPieces);
+    MeldSolver defaultMeldSolver(job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
+    defaultMeldSolver.setBaseParamRanges(_limitBaseParam, _baseParamRangeSelected);
+
+    // Set stat ranges to check against user selected range
+    // They are updated when switching a piece to avoid rebuilding the whole thing every time
+    for (auto& [baseParam, limited] : _limitBaseParam) {
+        if (!limited) continue;
+
+        auto& currentGearRange = _currentGearBaseParamRange[baseParam];
+        currentGearRange.first = Damage::Instance().getStartingValue(baseParam);
+        currentGearRange.second = Damage::Instance().getStartingValue(baseParam);
+        for (auto piece : defaultMeldSolver.gearPieces) {
+            currentGearRange.first += piece->minBaseParamValue[baseParam];
+            currentGearRange.second += piece->maxBaseParamValue[baseParam];
+        }
+        updateFoodBaseParamRanges(foodList);
+    }
+
+    /* Main loop
+    * The order or operations is:
+    * - (Prepare a thread then launch it) * number of available threads
+    * - Keep preparing threads until we have X ready, X being arbitrarily set to the number of available threads
+    * - Poll until a thread is done, update visual progress
+    *   Polling is done so there's no synchronization/locking mechanism slowing down any of the threads
+    * - Keep launching and preparing threads whenever there is room
+    * - While waiting for threads to finish, save results one by one so we can launch a new thread as soon as possible
+    */
+    map<size_t, jthread> threads;
+    map<size_t, MeldSolver> meldSolvers;
     deque<size_t> meldSolversReadyIdx;
     set<size_t> meldSolversToSave;
-    MeldSolver defaultMeldSolver(job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
-    map<size_t, MeldSolver> meldSolvers;
-    map<size_t, jthread> threads;
-    //int foodMaxSks = 0;
-    //for (unsigned int i = 0; i < m_foods.size(); i++) {
-    //    if (m_foods[i].cap[3] > foodMaxSks)
-    //        foodMaxSks = m_foods[i].cap[3];
-    //}
     int64_t resultMeldSolverIdx = -1;
     map<int, GearSet>::iterator resultSetIt;
     while (!stopToken.stop_requested() && (_gearPieceCounter[12] < _ringPerms || meldSolversToSave.size() > 0)) {
         if (activeThreads < maxHardwareThreads && meldSolversReadyIdx.size() > 0) {
+            // Launch thread
             threads.emplace(piecewise_construct, forward_as_tuple(meldSolversReadyIdx.front()), forward_as_tuple(&MeldSolver::findBestMelds, &(meldSolvers[meldSolversReadyIdx.front()])));
             meldSolversReadyIdx.pop_front();
             activeThreads++;
-        } else if (meldSolversReadyIdx.size() < maxHardwareThreads && _gearPieceCounter[12] < _ringPerms) {
-            // TODO: Rework for pentamelds, probably in FullSet+GearPiece
-        //int sksSlotsAvailable = 0;
-        //for (int i = 0; i < 12; i++) {
-        //    if (i == 4) continue;
-        //    GearPieceOld* piece = m_full_set.gear_set[i];
-        //    // TODO: rework sksSlotsAvailable into sksAvailable
-        //    if (piece->subStat == 3)
-        //        sksSlotsAvailable = sksSlotsAvailable + round(1.0 * min(piece->subs[piece->mainStat] - piece->subs[piece->subStat], piece->meldSlots * MAT) / MAT);
-        //    else if (piece->thirdStat == 3 || piece->fourthStat == 3)
-        //        sksSlotsAvailable = sksSlotsAvailable + piece->meldSlots;
-        //}
 
-        //if (!m_full_set.gear_set[10]->name.compare("Crafted") || m_full_set.gear_set[10]->name.compare(m_full_set.gear_set[11]->name)) {
-            //if (m_full_set.gearStats.subs[3] <= MAX_SKS && m_full_set.gearStats.subs[3] + sksSlotsAvailable * MAT + foodMaxSks >= MIN_SKS) {
-            meldSolvers.emplace(_switchCounter, defaultMeldSolver);
-            meldSolversReadyIdx.push_back(_switchCounter);
-            meldSolversToSave.insert(_switchCounter);
-            //}
-        //}
+        } else if (meldSolversReadyIdx.size() < maxHardwareThreads && _gearPieceCounter[12] < _ringPerms) {
+            // Prepare thread
+            
+            // Check we are in the selected stat range before solving melds for this gear pieces combination
+            bool isInRange = true;
+            for (auto& [baseParam, limited] : _limitBaseParam) {
+                if (!limited) continue;
+                
+                // Check if there is any intersection between selectedRange and currentGearRange + foodRange
+                auto& selectedRange = _baseParamRangeSelected[baseParam];
+                auto& currentGearRange = _currentGearBaseParamRange[baseParam];
+                auto& foodRange = _foodBaseParamRange[baseParam];
+                if (currentGearRange.first + foodRange.first > selectedRange.second || currentGearRange.second + foodRange.second < selectedRange.first) {
+                    isInRange = false;
+                    break;
+                }
+            }
+
+            if (isInRange) {
+                meldSolvers.emplace(_switchCounter, defaultMeldSolver);
+                meldSolversReadyIdx.push_back(_switchCounter);
+                meldSolversToSave.insert(_switchCounter);
+            }
+
             // Switch gear
             switchGear(gearPieces, defaultMeldSolver.gearPieces);
+            updateFoodBaseParamRanges(foodList);
             _switchCounter++;
+
         } else if (resultMeldSolverIdx >= 0) {
             // Compare 1 result and save (+ delete when done)
             while (resultSetIt != meldSolvers[resultMeldSolverIdx].results.end()) {
@@ -119,22 +150,27 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
                 threads.erase(resultMeldSolverIdx);
                 resultMeldSolverIdx = -1;
             }
+
         } else {
             // Go through meldSolvers
             float partialProgress = 0.0f;
             for (auto idx : meldSolversToSave) {
                 if (meldSolvers[idx].done) {
-                    resultMeldSolverIdx = static_cast<int64_t>(idx);
+                    resultMeldSolverIdx = static_cast<int64_t>(idx); // resultMeldSolverIdx can be -1 but idx is unsigned
                     resultSetIt = meldSolvers[idx].results.begin();
-                    //break;
                 } else {
+                    // This is calculated backwards because _switchCounter is updated when creating the meld solver
+                    // So until it is done we need to remove the progress it hasn't done yet
                     partialProgress += meldSolvers[idx].solvingProgress - 1;
                 }
             }
+
+            // Update progress for visual feedback
             solvingProgress = (_switchCounter + partialProgress) / _maxCounter;
             auto currentTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-            auto elapsed = currentTime - startTime;
+            elapsed = currentTime - startTime;
             estimatedRemaining = (int64_t)((1 / solvingProgress - 1) * elapsed);
+
             // If no result to check, sleep
             if (resultMeldSolverIdx < 0) {
                 this_thread::sleep_for(milliseconds(1));
@@ -144,8 +180,10 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
     if (!stopToken.stop_requested()) {
         solvingTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startTime;
     }
+    activeThreads--;
     isSolving = false;
     solvingProgress = 0.0f;
+    elapsed = 0;
     estimatedRemaining = 0;
 }
 
@@ -170,7 +208,7 @@ void SetBuilder::switchGear(const map<int, vector<GearPiece*>>& gearPieces, vect
     for (int slot : _equipSlots) {
         _gearPieceCounter[slot]++;
         // Until 11, compare to size and reset
-        // At 12, compare to ringPerms and don't reset
+        // At 12, compare to ringPerms and don't reset to hit main loop break condition
         if (_gearPieceCounter[slot] >= (slot >= 12 ? _ringPerms : gearPieces.at(slot).size())) {
             if (slot < 12) {
                 _gearPieceCounter[slot] = 0;
@@ -185,10 +223,15 @@ void SetBuilder::switchGear(const map<int, vector<GearPiece*>>& gearPieces, vect
 void SetBuilder::switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve, int slot) {
     auto pieceIdx = _gearPieceSlotToIdx[slot];
     auto& slotPieces = gearPieces.at(slot);
+
+    removePieceRanges(gearPiecesToSolve[pieceIdx]);
+
     if (slot < 12) {
         _gearPieceIdx[pieceIdx] = (_gearPieceIdx[pieceIdx] + 1) % slotPieces.size();
         gearPiecesToSolve[pieceIdx] = slotPieces.at(_gearPieceIdx[pieceIdx]);
     } else {
+        removePieceRanges(gearPiecesToSolve[pieceIdx + 1]);
+
         _gearPieceIdx[pieceIdx + 1]++;
         if (_gearPieceIdx[pieceIdx + 1] == slotPieces.size()) {
             _gearPieceIdx[pieceIdx]++;
@@ -196,5 +239,52 @@ void SetBuilder::switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vec
         }
         gearPiecesToSolve[pieceIdx] = slotPieces.at(_gearPieceIdx[pieceIdx]);
         gearPiecesToSolve[pieceIdx + 1] = slotPieces.at(_gearPieceIdx[pieceIdx + 1]);
+
+        addPieceRanges(gearPiecesToSolve[pieceIdx + 1]);
+    }
+
+    addPieceRanges(gearPiecesToSolve[pieceIdx]);
+}
+
+void SetBuilder::removePieceRanges(GearPiece* piece) {
+    for (auto& [baseParam, limited] : _limitBaseParam) {
+        if (!limited) continue;
+
+        _currentGearBaseParamRange[baseParam].first -= piece->minBaseParamValue[baseParam];
+        _currentGearBaseParamRange[baseParam].second -= piece->maxBaseParamValue[baseParam];
+    }
+}
+
+void SetBuilder::addPieceRanges(GearPiece* piece) {
+    for (auto& [baseParam, limited] : _limitBaseParam) {
+        if (!limited) continue;
+
+        _currentGearBaseParamRange[baseParam].first += piece->minBaseParamValue[baseParam];
+        _currentGearBaseParamRange[baseParam].second += piece->maxBaseParamValue[baseParam];
+    }
+}
+
+void SetBuilder::updateFoodBaseParamRanges(const vector<Food*>& foodList) {
+    for (auto& [baseParam, limited] : _limitBaseParam) {
+        if (!limited) continue;
+
+        auto& currentGearRange = _currentGearBaseParamRange[baseParam];
+        auto& foodRange = _foodBaseParamRange[baseParam];
+        foodRange.first = foodList.size() > 0 ? INT32_MAX : 0;
+        foodRange.second = 0;
+        for (auto food : foodList) {
+            pair<int, int> foodValue = make_pair(0, 0);
+            for (int i = 0; i < 3; i++) {
+                if (food->baseParam[i] != baseParam) continue;
+                foodValue.first = min((int)(currentGearRange.first * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
+                foodValue.second = min((int)(currentGearRange.second * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
+            }
+            if (foodValue.first < foodRange.first) {
+                foodRange.first = foodValue.first;
+            }
+            if (foodValue.second > foodRange.second) {
+                foodRange.second = foodValue.second;
+            }
+        }
     }
 }

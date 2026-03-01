@@ -29,6 +29,10 @@ void SolveTab::draw() {
     ImGui::SameLine();
     drawSolveButton();
 
+    if (_selectedJob) {
+        drawLimitBaseParamGroups();
+    }
+
     if (ImGui::BeginTabBar("SolveTabBar")) {
         if (ImGui::BeginHandTabItem("Gear")) {
             drawGearTab();
@@ -53,7 +57,7 @@ void SolveTab::drawGearTab() {
         ImGui::SameLine();
         ImGui::PushItemWidth(100);
         ImGui::InputInt2("##GearItemLevel", _gearItemLevelFilter);
-        if (ImGui::IsItemEdited()) {
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
             selectGearItemLvl();
         }
     }
@@ -91,6 +95,7 @@ void SolveTab::drawGearTab() {
                     else {
                         _selectedGearPieces[slot].insert(idx);
                     }
+                    updateBaseParamRanges();
                 }
                 if (!isSelected) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
                 
@@ -160,6 +165,7 @@ void SolveTab::drawFoodTab() {
                 else {
                     _selectedFoodIdx.insert(idx);
                 }
+                updateBaseParamRanges();
             }
             if (!isSelected) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
             
@@ -182,22 +188,14 @@ void SolveTab::drawFoodTab() {
 void SolveTab::drawResultsTab() {
     if (SetBuilder::Instance().isSolving) {
         ImGui::ProgressBar((float)SetBuilder::Instance().solvingProgress, ImVec2(200.0f, 0.0f));
+        //ImGui::SameLine();
+        //drawTime("Elapsed: ", SetBuilder::Instance().elapsed);
         ImGui::SameLine();
-        auto estimatedRemaining = SetBuilder::Instance().estimatedRemaining;
-        stringstream remainingText;
-        remainingText << "Remaining: "
-            << (int)(estimatedRemaining / 1000 / 60) << "m"
-            << setw(2) << (int)(estimatedRemaining / 1000) % 60 << "s"
-            << setw(3) << estimatedRemaining % 1000;
-        ImGui::TextUnformatted(remainingText.str().c_str());
+        drawTime("Remaining: ", SetBuilder::Instance().estimatedRemaining);
+        //ImGui::SameLine();
+        //ImGui::TextUnformatted(("Active threads: " + to_string(SetBuilder::Instance().activeThreads) + " / " + to_string(SetBuilder::Instance().maxHardwareThreads)).c_str());
     } else if (SetBuilder::Instance().solvingTime > 0) {
-        auto solvingTime = SetBuilder::Instance().solvingTime;
-        stringstream solvingText;
-        solvingText << "Solving done in: "
-            << (int)(solvingTime / 1000 / 60) << "m"
-            << setw(2) << (int)(solvingTime / 1000) % 60 << "s"
-            << setw(3) << solvingTime % 1000;
-        ImGui::TextUnformatted(solvingText.str().c_str());
+        drawTime("Solving done in: ", SetBuilder::Instance().solvingTime);
     }
 
     if (SetBuilder::Instance().results.size() > 0 && !SetBuilder::Instance().isSolving) {
@@ -252,6 +250,15 @@ void SolveTab::drawResultsTab() {
         ImGui::EndDisabled();
         ImGui::EndTable();
     }
+}
+
+void SolveTab::drawTime(string preText, int64_t timeValue) {
+    stringstream timeText;
+    timeText << preText
+        << (int64_t)(timeValue / 1000 / 60) << "m"
+        << setw(2) << (int64_t)(timeValue / 1000) % 60 << "s"
+        << setw(3) << timeValue % 1000;
+    ImGui::TextUnformatted(timeText.str().c_str());
 }
 
 void SolveTab::selectResult(const GearSet& result) {
@@ -324,7 +331,7 @@ void SolveTab::drawSolveButton() {
         if (it.first == 2 && _selectedJob != nullptr && _selectedJob->name == "PLD" && it.second.size() > 0) continue;
         if (it.first == 12 && (it.second.size() > 1 || it.second.size() == 1 && !_gearPiecesToDisplay[it.first][*it.second.begin()]->isUnique)) continue;
         if (it.first != 12 && it.second.size() > 0) continue;
-        solveButtonErrorMessages.push_back("Not enough gear pieces selected");
+        solveButtonErrorMessages.push_back("Not enough " + GearPiece::equipSlotName.at(it.first) + " pieces selected");
     }
     if (_selectedFoodIdx.size() == 0) solveButtonErrorMessages.push_back("No food selected");
     if (SetBuilder::Instance().isSolving) solveButtonErrorMessages.push_back("Solve is already ongoing");
@@ -337,6 +344,7 @@ void SolveTab::drawSolveButton() {
             _resultGearItemLevelFilter[1] = _gearItemLevelFilter[1];
             _resultFoodItemLevelFilter[0] = _foodItemLevelFilter[0];
             _resultFoodItemLevelFilter[1] = _foodItemLevelFilter[1];
+			SetBuilder::Instance().setBaseParamRanges(_limitBaseParam, _baseParamRangeSelected);
             SetBuilder::Instance().startSolve(_selectedJob, 100, _gearPiecesFiltered, _foodFiltered, _releventMateriaBaseParam);
             // TODO: pass selected level
         }
@@ -353,11 +361,100 @@ void SolveTab::drawSolveButton() {
     }
     ImGui::EndDisabled();
 
-    if (SetBuilder::Instance().isSolving) {
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!SetBuilder::Instance().isSolving);
+    if (ImGui::HandButton("Cancel")) {
+        SetBuilder::Instance().cancelSolve();
+    }
+    ImGui::EndDisabled();
+}
+
+void SolveTab::drawLimitBaseParamGroups() {
+    for (auto& [baseParam, isLimited] : _limitBaseParam) {
         ImGui::SameLine();
-        if (ImGui::HandButton("Cancel")) {
-            SetBuilder::Instance().cancelSolve();
+        ImGui::BeginGroup();
+        auto baseParamAbbr = BaseParam::abbr.at(baseParam);
+        ImGui::Checkbox(("Limit " + baseParamAbbr).c_str(), &isLimited);
+        if (isLimited) {
+            ImGui::PushItemWidth(150);
+            string modText;
+            string modFormat;
+            switch (baseParam) {
+                case BaseParam::Tenacity:
+                    modText = "Dmg Mod";
+                    modFormat = "%.3f";
+                    break;
+                case BaseParam::Piety:
+                    modText = "MP Tick";
+                    modFormat = "%.0f";
+                    break;
+                case BaseParam::SkillSpeed:
+                case BaseParam::SpellSpeed:
+                    modText = "GCD";
+                    modFormat = "%.2f";
+                    break;
+                default:
+                    break;
+            }
+            auto& modRangeSelected = _baseParamModRangeSelected[baseParam];
+            auto& modRangeAllowed = _baseParamModRangeAllowed[baseParam];
+            auto& valueRangeSelected = _baseParamRangeSelected[baseParam];
+            auto& valueRangeAllowed = _baseParamRangeAllowed[baseParam];
+            ImGui::SliderFloat(("##" + modText + "Min").c_str(), &modRangeSelected.first, modRangeAllowed.first, modRangeSelected.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
+            if (ImGui::IsItemEdited()) {
+                int newValue;
+                switch (baseParam) {
+                    case BaseParam::Tenacity:
+                        newValue = Damage::Instance().tenModIntToMin((int)(round(modRangeSelected.first * 1000)));
+                        break;
+                    case BaseParam::Piety:
+                        newValue = Damage::Instance().pieModToMin((int)modRangeSelected.first);
+                        break;
+                    case BaseParam::SkillSpeed:
+                    case BaseParam::SpellSpeed:
+                        newValue = Damage::Instance().gcdToMinSpeed((int)(round(modRangeSelected.first * 100)));
+                        break;
+                    default:
+                        break;
+                }
+                valueRangeSelected.first = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
+            }
+            ImGui::SameLine();
+            ImGui::SliderFloat((modText + "##" + modText + "Max").c_str(), &modRangeSelected.second, modRangeSelected.first, modRangeAllowed.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
+            if (ImGui::IsItemEdited()) {
+                int newValue;
+                switch (baseParam) {
+                    case BaseParam::Tenacity:
+                        newValue = Damage::Instance().tenModIntToMax((int)(round(modRangeSelected.second * 1000)));
+                        break;
+                    case BaseParam::Piety:
+                        newValue = Damage::Instance().pieModToMax((int)modRangeSelected.second);
+                        break;
+                    case BaseParam::SkillSpeed:
+                    case BaseParam::SpellSpeed:
+                        newValue = Damage::Instance().gcdToMaxSpeed((int)(round(modRangeSelected.second * 100)));
+                        break;
+                    default:
+                        break;
+                }
+                valueRangeSelected.second = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
+            }
+            ImGui::PushItemWidth(150);
+            ImGui::InputInt(("##" + baseParamAbbr + "Min").c_str(), &valueRangeSelected.first);
+            if (ImGui::IsItemEdited()) {
+                valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
+                valueRangeSelected.first = min(max(valueRangeSelected.first, valueRangeAllowed.first), valueRangeAllowed.second);
+                modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
+            }
+            ImGui::SameLine();
+            ImGui::InputInt((baseParamAbbr + "##" + baseParamAbbr + "Max").c_str(), &valueRangeSelected.second);
+            if (ImGui::IsItemEdited()) {
+                valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
+                valueRangeSelected.second = min(max(valueRangeSelected.second, valueRangeAllowed.first), valueRangeAllowed.second);
+                modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);
+            }
         }
+        ImGui::EndGroup();
     }
 }
 
@@ -383,11 +480,145 @@ void SolveTab::selectJob() {
     setReleventStats();
     setColumnHeaders();
 
-    initGearList();
-    initFoodList();
+    initGearList(false);
+    initFoodList(false);
+
+	Damage::Instance().init(_selectedJob, 100); // TODO: pass max values from gear/food selection
+    initBaseParamLimits();
 }
 
-void SolveTab::initGearList() {
+void SolveTab::initBaseParamLimits() {
+    _limitBaseParam.clear();
+    _baseParamModRangeSelected.clear();
+    _baseParamModRangeAllowed.clear();
+    _baseParamRangeSelected.clear();
+    _baseParamRangeAllowed.clear();
+
+    for (auto& baseParam : _releventMateriaBaseParam) {
+        if (baseParam != BaseParam::Tenacity
+         && baseParam != BaseParam::Piety
+         && baseParam != BaseParam::SkillSpeed
+         && baseParam != BaseParam::SpellSpeed) continue;
+
+        _limitBaseParam[baseParam] = false;
+        updateBaseParamRange(baseParam);
+        // Init selection to max allowed range
+        _baseParamRangeSelected[baseParam].first = _baseParamRangeAllowed[baseParam].first;
+        _baseParamRangeSelected[baseParam].second = _baseParamRangeAllowed[baseParam].second;
+        _baseParamModRangeSelected[baseParam].first = _baseParamModRangeAllowed[baseParam].first;
+        _baseParamModRangeSelected[baseParam].second = _baseParamModRangeAllowed[baseParam].second;
+    }
+}
+
+void SolveTab::updateBaseParamRanges() {
+    for (auto& [baseParam, _] : _limitBaseParam) {
+        updateBaseParamRange(baseParam);
+    }
+}
+
+void SolveTab::updateBaseParamRange(int baseParam) {
+    auto& modRangeSelected = _baseParamModRangeSelected[baseParam];
+    auto& modRangeAllowed = _baseParamModRangeAllowed[baseParam];
+    auto& valueRangeSelected = _baseParamRangeSelected[baseParam];
+    auto& valueRangeAllowed = _baseParamRangeAllowed[baseParam];
+
+    valueRangeAllowed.first = Damage::Instance().getStartingValue(baseParam);
+    valueRangeAllowed.second = Damage::Instance().getStartingValue(baseParam);
+
+    // Add range from gear
+    for (int slot = 1; slot < 13; slot++) {
+        if (!_selectedGearPieces.contains(slot)) continue;
+
+        int slotMinValue = INT32_MAX;
+        int slotSecondMinValue = INT32_MAX;
+        int slotMaxValue = 0;
+        int slotSecondMaxValue = 0;
+        for (auto idx : _selectedGearPieces[slot]) {
+			auto piece = _gearPiecesToDisplay[slot][idx];
+            int pieceMinValue = piece->minBaseParamValue[baseParam];
+            int pieceMaxValue = piece->maxBaseParamValue[baseParam];
+			if (pieceMinValue <= slotMinValue) {
+                slotSecondMinValue = piece->isUnique ? slotMinValue : pieceMinValue;
+                slotMinValue = pieceMinValue;
+            }
+            if (pieceMaxValue >= slotMaxValue) {
+                slotSecondMaxValue = piece->isUnique ? slotMaxValue : pieceMaxValue;
+                slotMaxValue = pieceMaxValue;
+			}
+        }
+
+        valueRangeAllowed.first += slotMinValue < INT32_MAX ? slotMinValue : 0;
+        valueRangeAllowed.second += slotMaxValue;
+        if (slot == 12) {
+            valueRangeAllowed.first += slotSecondMinValue < INT32_MAX ? slotSecondMinValue : 0;
+            valueRangeAllowed.second += slotSecondMaxValue;
+        }
+    }
+
+    // Add range from food
+    pair<int, int> foodRange = make_pair(_selectedFoodIdx.size() > 0 ? INT32_MAX : 0, 0);
+    for (auto idx : _selectedFoodIdx) {
+        auto food = _foodToDisplay[idx];
+        pair<int, int> foodValue = make_pair(0, 0);
+        for (int i = 0; i < 3; i++) {
+            if (food->baseParam[i] != baseParam) continue;
+            foodValue.first = min((int)(valueRangeAllowed.first * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
+            foodValue.second = min((int)(valueRangeAllowed.second * 0.01f * food->valueHQ[i]), food->maxHQ[i]);
+        }
+        if (foodValue.first < foodRange.first) {
+            foodRange.first = foodValue.first;
+		}
+        if (foodValue.second > foodRange.second) {
+            foodRange.second = foodValue.second;
+        }
+	}
+    valueRangeAllowed.first += foodRange.first;
+    valueRangeAllowed.second += foodRange.second;
+
+    // Set allowed mod range
+    switch (baseParam) {
+        case BaseParam::Tenacity:
+            modRangeAllowed.first = Damage::Instance().tenMod(valueRangeAllowed.first);
+            modRangeAllowed.second = Damage::Instance().tenMod(valueRangeAllowed.second);
+            break;
+        case BaseParam::Piety:
+            modRangeAllowed.first = (float)Damage::Instance().pieMod(valueRangeAllowed.first);
+            modRangeAllowed.second = (float)Damage::Instance().pieMod(valueRangeAllowed.second);
+            break;
+        case BaseParam::SkillSpeed:
+        case BaseParam::SpellSpeed:
+            modRangeAllowed.first = Damage::Instance().gcd(valueRangeAllowed.first) / 100.0f;
+            modRangeAllowed.second = Damage::Instance().gcd(valueRangeAllowed.second) / 100.0f;
+            break;
+        default:
+            break;
+    }
+
+    // Clamp selection to allowed range
+    valueRangeSelected.first = max(valueRangeAllowed.first, valueRangeSelected.first);
+    valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
+    valueRangeSelected.second = min(valueRangeAllowed.second, valueRangeSelected.second);
+    valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
+
+    modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
+    modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);
+}
+
+float SolveTab::getModToDisplay(const int& baseParam, const int& value) {
+    switch (baseParam) {
+        case BaseParam::Tenacity:
+            return Damage::Instance().tenMod(value);
+        case BaseParam::Piety:
+            return (float)Damage::Instance().pieMod(value);
+        case BaseParam::SkillSpeed:
+        case BaseParam::SpellSpeed:
+            return Damage::Instance().gcd(value) / 100.0f;
+        default:
+            return .0f;
+    }
+}
+
+void SolveTab::initGearList(bool updateRanges) {
     _selectedJobGearPieces.clear();
 
     int maxItemLvl = 0;
@@ -405,10 +636,10 @@ void SolveTab::initGearList() {
         _gearItemLevelFilter[1] = maxItemLvl;
     }
 
-    selectGearItemLvl();
+    selectGearItemLvl(updateRanges);
 }
 
-void SolveTab::initFoodList() {
+void SolveTab::initFoodList(bool updateRanges) {
     _selectedJobFood.clear();
     int maxItemLvl = 0;
     for (auto& food : Data::Instance().foodList) {
@@ -432,10 +663,10 @@ void SolveTab::initFoodList() {
         _foodItemLevelFilter[1] = maxItemLvl;
     }
 
-    selectFoodItemLvl();
+    selectFoodItemLvl(updateRanges);
 }
 
-void SolveTab::selectGearItemLvl() {
+void SolveTab::selectGearItemLvl(bool updateRanges) {
     _gearPiecesToDisplay.clear();
     _gearPiecesToDisplayCount = 0;
     _gearPiecesToDisplaySlotCount = 0;
@@ -461,9 +692,19 @@ void SolveTab::selectGearItemLvl() {
             return p2->id > p1->id;
             });
     }
+
+    for (auto& it : _gearPiecesToDisplay) {
+        for (auto& gearPiece : it.second) {
+            gearPiece->setMeldPerms(_releventMateriaBaseParam, Data::Instance().materiaList);
+        }
+    }
+
+    if (updateRanges) {
+        updateBaseParamRanges();
+    }
 }
 
-void SolveTab::selectFoodItemLvl() {
+void SolveTab::selectFoodItemLvl(bool updateRanges) {
     _foodToDisplay.clear();
     _selectedFoodIdx.clear();
 
@@ -473,17 +714,21 @@ void SolveTab::selectFoodItemLvl() {
         _foodToDisplay.push_back(food);
         _selectedFoodIdx.insert(_foodToDisplay.size() - 1);
     }
+
+    if (updateRanges) {
+        updateBaseParamRanges();
+    }
 }
 
 void SolveTab::setReleventStats() {
     _releventMateriaBaseParam.clear();
 
-    _releventMateriaBaseParam.push_back(22); // DH
-    _releventMateriaBaseParam.push_back(27); // CRIT
-    _releventMateriaBaseParam.push_back(44); // DET
-    _releventMateriaBaseParam.push_back(_selectedJob->primaryStat == 4 || _selectedJob->primaryStat == 5 ? 46 : 45); // SS
-    if (_selectedJob->role == 1) _releventMateriaBaseParam.push_back(19); // TNC
-    if (_selectedJob->role == 4) _releventMateriaBaseParam.push_back(6); // PIE
+    _releventMateriaBaseParam.push_back(BaseParam::DirectHit);
+    _releventMateriaBaseParam.push_back(BaseParam::CriticalHit);
+    _releventMateriaBaseParam.push_back(BaseParam::Determination);
+    _releventMateriaBaseParam.push_back(_selectedJob->getSpeedBaseParam());
+    if (_selectedJob->role == 1) _releventMateriaBaseParam.push_back(BaseParam::Tenacity);
+    if (_selectedJob->role == 4) _releventMateriaBaseParam.push_back(BaseParam::Piety);
 }
 
 void SolveTab::setColumnHeaders() {
@@ -492,8 +737,8 @@ void SolveTab::setColumnHeaders() {
     _gearBaseParamToDisplay.clear();
     _foodBaseParamToDisplay.clear();
 
-    _gearBaseParamToDisplay.push_back(_selectedJob->primaryStat == 4 || _selectedJob->primaryStat == 5 ? 13 : 12); // WD
-    _gearBaseParamToDisplay.push_back(_selectedJob->primaryStat); // Main Stat
+    _gearBaseParamToDisplay.push_back(_selectedJob->getWeaponDamageBaseParam());
+    _gearBaseParamToDisplay.push_back(_selectedJob->primaryStat);
     for (const auto& baseParam : _releventMateriaBaseParam) {
         _gearBaseParamToDisplay.push_back(baseParam);
         _foodBaseParamToDisplay.push_back(baseParam);

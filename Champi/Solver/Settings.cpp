@@ -60,7 +60,7 @@ void Settings::controlSettings() {
 	auto prevMaxParallelWorkers = maxParallelWorkers;
 	auto prevMinMateriaRatio = minMateriaRatio;
 
-    maxParallelWorkers = max(1, min(maxParallelWorkers, (int)thread::hardware_concurrency()));
+    maxParallelWorkers = max(2, min(maxParallelWorkers, (int)thread::hardware_concurrency()));
     minMateriaRatio = max(0.0f, min(minMateriaRatio, 1.0f));
 
     if (prevMaxParallelWorkers != maxParallelWorkers || prevMinMateriaRatio != minMateriaRatio) {

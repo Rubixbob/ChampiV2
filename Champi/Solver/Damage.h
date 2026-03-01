@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "../Entities/Job.h"
+#include "../Entities/BaseParam.h"
 
 using namespace std;
 
@@ -24,16 +25,25 @@ public:
 	float critMod(int crit);
 	float detMod(int det);
 	float tenMod(int ten);
+	int tenModIntToMin(int tenModInt);
+	int tenModIntToMax(int tenModInt);
+	int pieMod(int pie);
+	int pieModToMin(int pie);
+	int pieModToMax(int pie);
 	int gcd(int ss);
+	int gcdToMinSpeed(int gcd);
+	int gcdToMaxSpeed(int gcd);
 	float damageMod(int wd, int mainStat, int dh, int crit, int det);
 	float damageMod(int wd, int mainStat, int dh, int crit, int det, int ten);
 
 	int getLvlModMain() { return _lvlModMain; }
 	int getLvlModSub() { return _lvlModSub; }
+	int getStartingValue(int baseParam);
 
 private:
 	static Damage _instance;
 
+	Job* _selectedJob = nullptr;
 	int _jobMod = 100; // Set from job
 	int _lvlModAP = 237; // Set from level
 	int _lvlModMain = 440; // Set from level
@@ -47,7 +57,14 @@ private:
 	vector<float> _critMod;
 	vector<float> _detMod;
 	vector<float> _tenMod;
+	map<int, int> _tenModIntToMin;
+	map<int, int> _tenModIntToMax;
+	vector<int> _pieMod;
+	map<int, int> _pieModToMin;
+	map<int, int> _pieModToMax;
 	vector<int> _gcd;
+	map<int, int> _gcdToMinSpeed;
+	map<int, int> _gcdToMaxSpeed;
 
 	mutex _wdMutex;
 	mutex _mainStatMutex;

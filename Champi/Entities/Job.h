@@ -3,6 +3,8 @@
 #include <string>
 #include <set>
 
+#include "BaseParam.h"
+
 using namespace std;
 
 class Job
@@ -17,4 +19,7 @@ public:
 	int primaryStatMod; // ModifierXxx
 	int role; // Role
 	set<int> categories;
+
+	int getSpeedBaseParam() const;
+	int getWeaponDamageBaseParam() const;
 };

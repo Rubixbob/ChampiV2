@@ -16,7 +16,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
         MeldPerm perm;
         perm.gearPiece = this;
         for (int i = 0; i < 6; i++) {
-            if (baseParam[i] == 0 || baseParamValue[i] == 0) break;
+            if (baseParam[i] == 0 || baseParamValue[i] == 0) continue;
             perm.baseParamTotalValue[baseParam[i]] = baseParamValue[i];
         }
         meldPerms.push_back(perm);
@@ -26,14 +26,16 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
     // Find capped substat
     int substatCap = -1;
     int maxReleventBaseParam = -1;
+    map<int, int> baseParamToIdx;
     for (int i = 0; i < 6; i++) {
-        if (baseParam[i] == 0) break;
+        if (baseParam[i] == 0) continue;
         if (find(releventMateriaBaseParam.begin(), releventMateriaBaseParam.end(), baseParam[i]) == releventMateriaBaseParam.end()) continue;
 
         if (baseParamValue[i] > substatCap) {
             substatCap = baseParamValue[i];
             maxReleventBaseParam = baseParam[i];
         }
+		baseParamToIdx[baseParam[i]] = i;
     }
 
     // Exclude capped substat
@@ -73,6 +75,8 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
     int baseParamIdx[5] = { 0 }; // Index of what materia to use for each slot
     set<string> permStats;
 	float materiaIgnorePercent = Settings::Instance().minMateriaRatio;
+    int maxSlot = isAdvancedMeldingPermitted ? 4 : materiaSlotCount - 1;
+    int firstOvermeldSlot = isAdvancedMeldingPermitted ? materiaSlotCount : -1;
     bool done = false;
     while (!done) {
         MeldPerm perm;
@@ -87,21 +91,24 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
 
         // Calc materia and total value
         for (int i = 0; i < 6; i++) {
-            if (baseParam[i] == 0 || baseParamValue[i] == 0) break;
+            if (baseParam[i] == 0 || baseParamValue[i] == 0) continue;
             perm.baseParamTotalValue[baseParam[i]] = baseParamValue[i];
         }
         bool ignorePerm = false;
         for (int slot = 0; slot < 5; slot++) {
             if (slot >= materiaSlotCount && !isAdvancedMeldingPermitted) break;
 
-            int materiaValue = min(perm.materia[slot]->value, substatCap - perm.baseParamTotalValue[perm.materia[slot]->baseParam]);
-            if (materiaValue < perm.materia[slot]->value * materiaIgnorePercent) {
+            int materiaBaseParam = perm.materia[slot]->baseParam;
+			int materiaValue = perm.materia[slot]->value;
+
+            int materiaActualValue = min(materiaValue, substatCap - perm.baseParamTotalValue[materiaBaseParam]);
+            if (materiaActualValue < materiaValue * materiaIgnorePercent) {
                 ignorePerm = true;
                 break;
             }
-            if (materiaValue == 0) continue;
-            perm.baseParamTotalValue[perm.materia[slot]->baseParam] += materiaValue;
-            perm.baseParamMatValue[perm.materia[slot]->baseParam] += materiaValue;
+            if (materiaActualValue == 0) continue;
+            perm.baseParamTotalValue[materiaBaseParam] += materiaActualValue;
+            perm.baseParamMatValue[materiaBaseParam] += materiaActualValue;
         }
 
         if (!ignorePerm) {
@@ -120,20 +127,9 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
 
         if (!ignorePerm) {
             meldPerms.push_back(perm);
-
-            // Max available slots for the piece
-            for (auto& gradeIt : perm.baseParamMatCount) {
-                for (auto& baseParamIt : gradeIt.second) {
-                    if (availableSlots[gradeIt.first][baseParamIt.first] < baseParamIt.second) {
-                        availableSlots[gradeIt.first][baseParamIt.first] = baseParamIt.second;
-                    }
-                }
-            }
         }
 
         // Increment idx
-        int maxSlot = isAdvancedMeldingPermitted ? 4 : materiaSlotCount - 1;
-        int firstOvermeldSlot = isAdvancedMeldingPermitted ? materiaSlotCount : -1;
         int slot = maxSlot;
         while (true) {
             baseParamIdx[slot]++;
@@ -153,6 +149,34 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
                     baseParamIdx[i] = baseParamIdx[slot];
                 }
                 break;
+            }
+        }
+    }
+
+    // Init min/max stats
+    minBaseParamValue.clear();
+    maxBaseParamValue.clear();
+    maxBaseParamMatValue.clear();
+    for (auto& baseParam : releventMateriaBaseParam) {
+        int value = baseParamToIdx.contains(baseParam) ? baseParamValue[baseParamToIdx[baseParam]] : 0;
+        minBaseParamValue[baseParam] = value;
+        maxBaseParamValue[baseParam] = value;
+    }
+    for (auto& perm : meldPerms) {
+        for (auto& [baseParam, value] : perm.baseParamTotalValue) {
+            if (find(releventBaseParam.begin(), releventBaseParam.end(), baseParam) == releventBaseParam.end()) continue;
+
+			if (value > maxBaseParamValue[baseParam]) {
+                maxBaseParamValue[baseParam] = value;
+            }
+        }
+    }
+    for (auto& perm : meldPerms) {
+        for (auto& [baseParam, value] : perm.baseParamMatValue) {
+            if (find(releventBaseParam.begin(), releventBaseParam.end(), baseParam) == releventBaseParam.end()) continue;
+
+			if (value > maxBaseParamMatValue[baseParam]) {
+                maxBaseParamMatValue[baseParam] = value;
             }
         }
     }

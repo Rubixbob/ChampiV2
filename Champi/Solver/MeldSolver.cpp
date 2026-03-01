@@ -19,8 +19,9 @@ void MeldSolver::findBestMelds() {
 
     GearSet gearSet(_job, gearPieces);
 
-    int ssBaseParam = _job->primaryStat == 4 || _job->primaryStat == 5 ? 46 : 45;
+    // List of stats used to build the key for saving already explored stat combinations
     vector<int> jobBaseParams;
+    int ssBaseParam = _job->getSpeedBaseParam();
     for (auto& baseParam : _releventMateriaBaseParam) {
         if (baseParam == ssBaseParam) continue;
         jobBaseParams.push_back(baseParam);
@@ -33,9 +34,7 @@ void MeldSolver::findBestMelds() {
 
     auto getKey = jobBaseParams.size() == 4 ? getKey4 : getKey3;
 
-    size_t slotIdx = 0;
-    size_t maxSlotIdx = gearPieces.size() - 1;
-
+    // Structure to display solving progress
     float maxCounter = 1.0f;
     vector<float> progressWeight(gearPieces.size(), 1.0f);
     for (int i = 0; i < gearPieces.size(); i++) {
@@ -46,35 +45,120 @@ void MeldSolver::findBestMelds() {
         }
     }
 
+    // Build the possible stat range for every slot to check against user selected range
+    for (auto& [baseParam, limited] : _limitBaseParam) {
+        if (!limited) continue;
+
+        auto& slotRange = _slotBaseParamRange[baseParam];
+        pair<int, int> gearRange = make_pair(0, 0);
+        slotRange.push_front(gearRange);
+        for (auto slot = gearPieces.size() - 1; slot >= 1; slot--) {
+            auto piece = gearPieces[slot];
+            gearRange.second += piece->maxBaseParamMatValue[baseParam];
+            slotRange.push_front(gearRange);
+        }
+        pair<int, int> foodRange = make_pair(_foodList.size() > 0 ? INT32_MAX : 0, 0);
+        for (auto food : _foodList) {
+            int foodValue = 0;
+            for (int i = 0; i < 3; i++) {
+                if (food->baseParam[i] != baseParam) continue;
+
+                // For performance we take the max value instead of recalculating the % value at every step
+                foodValue = food->maxHQ[i];
+            }
+            if (foodValue < foodRange.first) {
+                foodRange.first = foodValue;
+            }
+            if (foodValue > foodRange.second) {
+                foodRange.second = foodValue;
+            }
+        }
+        for (auto& range : slotRange) {
+            range.first += foodRange.first;
+            range.second += foodRange.second;
+        }
+    }
+
+    /* Main loop
+    * Depth first search of meld combinations
+    * All meld combinations are explored as a tree where the meld combinations of the weapon
+    * would be the children of the root and the meld combinations of the second ring are leaves
+    * 
+    * We start by picking a combination for main hand then we go through pieces one by one until second ring
+    * When all pieces have a meld combination selected we go through the foods
+    * At each node we mark the total stats combination as visited in statCombs so we avoid exploring an identical part of the tree later
+    * At each node we also check if we are in the user selected stat range
+    * When we can't go down we explorer the next node on the same level
+    * When all nodes of the same level are explored we go up
+    * 
+    * Credits to June for the layer by layer implementation on the xiv gear meld solver which inspired me to do this version that is lighter memory wise
+    */
     bool looping = true;
+    size_t slotIdx = 0;
+    size_t maxSlotIdx = gearPieces.size() - 1;
     while (looping) {
         if (_solveStopToken.stop_requested()) {
-            statCombs.clear();
+            statCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
             return;
         }
-
         gearSet.addMeldPerm(&gearPieces[slotIdx]->meldPerms[currentPerm[slotIdx]]);
 
         auto key = getKey(jobBaseParams, gearSet.meldedBaseParamValue);
-        auto& statCombsSS = statCombs[slotIdx][gearSet.meldedBaseParamValue.at(ssBaseParam)];
+        auto meldedSsBaseParamValue = gearSet.meldedBaseParamValue.at(ssBaseParam);
+        auto& statCombsSS = statCombs[slotIdx][meldedSsBaseParamValue];
+
+        // Check we are in the selected stat range before adding more melds and food
+        bool isInRange = true;
+        for (auto& [baseParam, limited] : _limitBaseParam) {
+            if (!limited) continue;
+
+            // Check if there is any intersection between selectedRange and meldedBaseParamValue + slotRange
+            auto meldedBaseParamValue = gearSet.meldedBaseParamValue.at(baseParam);
+            auto& slotRange = _slotBaseParamRange[baseParam][slotIdx];
+            auto& selectedRange = _baseParamRangeSelected[baseParam];
+            if (meldedBaseParamValue + slotRange.first > selectedRange.second || meldedBaseParamValue + slotRange.second < selectedRange.first) {
+                isInRange = false;
+                break;
+            }
+        }
 
         auto [it, inserted] = statCombsSS.insert(key);
+        inserted = inserted && isInRange;
         if (inserted && slotIdx == maxSlotIdx) {
             gearSet.initFedMeldedStats();
 
             for (auto food : _foodList) {
                 gearSet.addFood(food);
-                float damageMod = gearSet.fedMeldedDamageMod();
-                int gcd = gearSet.fedMeldedGcd();
-                int idx = 250 - gcd;
-                auto [res, emplaced] = results.try_emplace(idx, gearSet);
-                if (!emplaced && damageMod > res->second.damageMod) {
-                    res->second = gearSet;
+
+                // Check we are in the selected stat range before saving the result
+                bool isInRange = true;
+                for (auto& [baseParam, limited] : _limitBaseParam) {
+                    if (!limited) continue;
+
+                    // Check if fedMeldedBaseParamValue is in selectedRange
+                    auto fedMeldedBaseParamValue = gearSet.fedMeldedBaseParamValue.at(baseParam);
+                    auto& selectedRange = _baseParamRangeSelected[baseParam];
+                    if (fedMeldedBaseParamValue > selectedRange.second || fedMeldedBaseParamValue < selectedRange.first) {
+                        isInRange = false;
+                        break;
+                    }
+                }
+
+                // Check against saved result and save
+                if (isInRange) {
+                    float damageMod = gearSet.fedMeldedDamageMod();
+                    int gcd = gearSet.fedMeldedGcd();
+                    int idx = 250 - gcd;
+                    auto [res, emplaced] = results.try_emplace(idx, gearSet); // Always save if there isn't already a result for this gcd
+                    if (!emplaced && damageMod > res->second.damageMod) { // If there was already a result compare damage mods
+                        res->second = gearSet;
+                    }
                 }
                 gearSet.popFood();
             }
         }
 
+        // Go to next node
         if (inserted && slotIdx < maxSlotIdx) {
             slotIdx++;
         } else {
@@ -93,6 +177,7 @@ void MeldSolver::findBestMelds() {
             }
         }
 
+        // Update progress for visual feedback
         float currentCount = 0;
         for (size_t slot = 0; slot < gearPieces.size(); slot++) {
             currentCount += currentPerm[slot] * progressWeight[slot];
@@ -100,9 +185,14 @@ void MeldSolver::findBestMelds() {
         solvingProgress = currentCount / maxCounter;
     }
 
-    statCombs.clear();
+    statCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
     (*_solveActiveThreads)--;
     done = true;
+}
+
+void MeldSolver::setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected) {
+    _limitBaseParam = limitBaseParam;
+    _baseParamRangeSelected = baseParamRangeSelected;
 }
 
 uint64_t MeldSolver::getKey3(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue) {

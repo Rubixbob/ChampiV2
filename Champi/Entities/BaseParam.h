@@ -36,4 +36,21 @@ public:
 		{45, "SKS"},
 		{46, "SPS"}
 	};
+
+	inline static const int Strength = 1;
+	inline static const int Dexterity = 2;
+	inline static const int Vitality = 3;
+	inline static const int Intelligence = 4;
+	inline static const int Mind = 5;
+	inline static const int Piety = 6;
+	inline static const int DamagePhys = 12;
+	inline static const int DamageMag = 13;
+	inline static const int Tenacity = 19;
+	inline static const int DirectHit = 22;
+	inline static const int CriticalHit = 27;
+	inline static const int Determination = 44;
+	inline static const int SkillSpeed = 45;
+	inline static const int SpellSpeed = 46;
+
+	static int getStartingValue(int baseParam, int lvlModMain, int lvlModSub);
 };

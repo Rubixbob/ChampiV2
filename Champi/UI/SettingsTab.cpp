@@ -27,7 +27,7 @@ void SettingsTab::draw()
         ImGui::Text("Max Parallel Workers");
         ImGui::TableSetColumnIndex(col++);
         ImGui::PushItemWidth(200);
-        ImGui::SliderInt("##MaxParallelWorkers", &Settings::Instance().maxParallelWorkers, 1, thread::hardware_concurrency(), "%d", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderInt("##MaxParallelWorkers", &Settings::Instance().maxParallelWorkers, 2, thread::hardware_concurrency(), "%d", ImGuiSliderFlags_AlwaysClamp);
 		if (ImGui::IsItemEdited()) Settings::Instance().writeSettingsFile();
         ImGui::TableSetColumnIndex(col++);
         ImGui::TextDisabled("(?)");

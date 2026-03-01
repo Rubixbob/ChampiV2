@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,6 +33,8 @@ public:
 	bool done = false;
 
 	void findBestMelds();
+
+	void setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected);
 private:
 	const Job* _job = nullptr;
 	vector<Food*> _foodList;
@@ -39,6 +42,10 @@ private:
 	stop_token _solveStopToken;
 
 	atomic_int* _solveActiveThreads = nullptr;
+
+	map<int, bool> _limitBaseParam;
+	map<int, pair<int, int>> _baseParamRangeSelected;
+	map<int, deque<pair<int, int>>> _slotBaseParamRange;
 
 	static uint64_t getKey3(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue);
 	static uint64_t getKey4(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue);

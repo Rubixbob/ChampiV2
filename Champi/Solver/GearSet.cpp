@@ -8,14 +8,13 @@ GearSet::GearSet()
 GearSet::GearSet(const Job* job, const vector<GearPiece*>& gearPieces)
 {
     selectedJob = job;
-    mainBaseParamValue = Damage::Instance().getLvlModMain() * job->primaryStatMod / 100;
-    meldedBaseParamValue[22] = Damage::Instance().getLvlModSub(); // DH
-    meldedBaseParamValue[27] = Damage::Instance().getLvlModSub(); // CRIT
-    meldedBaseParamValue[44] = Damage::Instance().getLvlModMain(); // DET
-    int ssBaseParam = job->primaryStat == 4 || job->primaryStat == 5 ? 46 : 45;
-    meldedBaseParamValue[ssBaseParam] = Damage::Instance().getLvlModSub(); // SS
-    if (job->role == 1) meldedBaseParamValue[19] = Damage::Instance().getLvlModSub(); // TNC
-    if (job->role == 4) meldedBaseParamValue[6] = Damage::Instance().getLvlModSub(); // PIE
+    mainBaseParamValue = Damage::Instance().getStartingValue(job->primaryStat) * job->primaryStatMod / 100;
+    meldedBaseParamValue[BaseParam::DirectHit] = Damage::Instance().getStartingValue(BaseParam::DirectHit);
+    meldedBaseParamValue[BaseParam::CriticalHit] = Damage::Instance().getStartingValue(BaseParam::CriticalHit);
+    meldedBaseParamValue[BaseParam::Determination] = Damage::Instance().getStartingValue(BaseParam::Determination);
+    meldedBaseParamValue[job->getSpeedBaseParam()] = Damage::Instance().getStartingValue(job->getSpeedBaseParam());
+    if (job->role == 1) meldedBaseParamValue[BaseParam::Tenacity] = Damage::Instance().getStartingValue(BaseParam::Tenacity);
+    if (job->role == 4) meldedBaseParamValue[BaseParam::Piety] = Damage::Instance().getStartingValue(BaseParam::Piety);
 
     for (auto piece : gearPieces) {
         damagePhys += piece->damagePhys;
@@ -62,7 +61,7 @@ void GearSet::addFood(Food* food) {
     selectedFood = food;
 
     for (int i = 0; i < 3; i++) {
-        if (food->baseParam[i] == 3) continue; // Ignore Vitality
+        if (food->baseParam[i] == BaseParam::Vitality) continue;
         
         auto baseParamIt = fedMeldedBaseParamValue.find(food->baseParam[i]);
         if (baseParamIt == fedMeldedBaseParamValue.end()) continue;
@@ -72,7 +71,7 @@ void GearSet::addFood(Food* food) {
 
 void GearSet::popFood() {
     for (int i = 0; i < 3; i++) {
-        if (selectedFood->baseParam[i] == 3) continue; // Ignore Vitality
+        if (selectedFood->baseParam[i] == BaseParam::Vitality) continue;
         
         auto fedBaseParamIt = fedMeldedBaseParamValue.find(selectedFood->baseParam[i]);
         auto meldedBaseParamIt = meldedBaseParamValue.find(selectedFood->baseParam[i]);
@@ -97,8 +96,8 @@ float GearSet::fedMeldedDamageMod() {
 
 float GearSet::calcDamageMod(const map<int, int>& baseParamValue) {
     auto result = (selectedJob->role == 1) ?
-        Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(22), baseParamValue.at(27), baseParamValue.at(44), baseParamValue.at(19)) :
-        Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(22), baseParamValue.at(27), baseParamValue.at(44));
+        Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(BaseParam::DirectHit), baseParamValue.at(BaseParam::CriticalHit), baseParamValue.at(BaseParam::Determination), baseParamValue.at(BaseParam::Tenacity)) :
+        Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(BaseParam::DirectHit), baseParamValue.at(BaseParam::CriticalHit), baseParamValue.at(BaseParam::Determination));
     damageMod = result;
     return result;
 }
@@ -112,8 +111,7 @@ int GearSet::fedMeldedGcd() {
 }
 
 int GearSet::gcd(const map<int, int>& baseParamValue) {
-    int ssBaseParam = selectedJob->primaryStat == 4 || selectedJob->primaryStat == 5 ? 46 : 45;
-    auto result = Damage::Instance().gcd(baseParamValue.at(ssBaseParam));
+    auto result = Damage::Instance().gcd(baseParamValue.at(selectedJob->getSpeedBaseParam()));
     gcdInt = result;
     return result;
 }

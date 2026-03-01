@@ -32,13 +32,18 @@ public:
 
 	bool isSolving = false;
 	float solvingProgress = 0.0f;
+	int64_t elapsed = 0;
 	int64_t estimatedRemaining = 0;
 	int64_t solvingTime = 0;
+	atomic_int activeThreads = 0;
+	int maxHardwareThreads = 0;
 
 	map<int, GearSet> results;
 
 	void startSolve(Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
 	void cancelSolve();
+
+	void setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected);
 private:
 	static SetBuilder _instance;
 
@@ -52,8 +57,16 @@ private:
 	size_t _switchCounter;
 	size_t _maxCounter;
 
+	map<int, bool> _limitBaseParam;
+	map<int, pair<int, int>> _baseParamRangeSelected;
+	map<int, pair<int, int>> _currentGearBaseParamRange;
+	map<int, pair<int, int>> _foodBaseParamRange;
+
 	void solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam);
 	vector<GearPiece*> initGear(const map<int, vector<GearPiece*>>& gearPieces);
 	void switchGear(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve);
 	void switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vector<GearPiece*>& gearPiecesToSolve, int slot);
+	void removePieceRanges(GearPiece* piece);
+	void addPieceRanges(GearPiece* piece);
+	void updateFoodBaseParamRanges(const vector<Food*>& foodList);
 };
