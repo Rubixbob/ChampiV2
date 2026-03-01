@@ -373,85 +373,88 @@ void SolveTab::drawLimitBaseParamGroups() {
         ImGui::BeginGroup();
         auto baseParamAbbr = BaseParam::abbr.at(baseParam);
         ImGui::Checkbox(("Limit " + baseParamAbbr).c_str(), &isLimited);
-        if (isLimited) {
-            ImGui::PushItemWidth(150);
-            string modText;
-            string modFormat;
+        if (ImGui::IsItemEdited() && !isLimited) {
+            setSelectedRangeToAllowed(baseParam);
+        }
+        ImGui::BeginDisabled(!isLimited);
+        ImGui::PushItemWidth(150);
+        string modText;
+        string modFormat;
+        switch (baseParam) {
+            case BaseParam::Tenacity:
+                modText = "Dmg Mod";
+                modFormat = "%.3f";
+                break;
+            case BaseParam::Piety:
+                modText = "MP Tick";
+                modFormat = "%.0f";
+                break;
+            case BaseParam::SkillSpeed:
+            case BaseParam::SpellSpeed:
+                modText = "GCD";
+                modFormat = "%.2f";
+                break;
+            default:
+                break;
+        }
+        auto& modRangeSelected = _baseParamModRangeSelected[baseParam];
+        auto& modRangeAllowed = _baseParamModRangeAllowed[baseParam];
+        auto& valueRangeSelected = _baseParamRangeSelected[baseParam];
+        auto& valueRangeAllowed = _baseParamRangeAllowed[baseParam];
+        ImGui::SliderFloat(("##" + modText + "Min").c_str(), &modRangeSelected.first, modRangeAllowed.first, modRangeSelected.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
+        if (ImGui::IsItemEdited()) {
+            int newValue;
             switch (baseParam) {
                 case BaseParam::Tenacity:
-                    modText = "Dmg Mod";
-                    modFormat = "%.3f";
+                    newValue = Damage::Instance().tenModIntToMin((int)(round(modRangeSelected.first * 1000)));
                     break;
                 case BaseParam::Piety:
-                    modText = "MP Tick";
-                    modFormat = "%.0f";
+                    newValue = Damage::Instance().pieModToMin((int)modRangeSelected.first);
                     break;
                 case BaseParam::SkillSpeed:
                 case BaseParam::SpellSpeed:
-                    modText = "GCD";
-                    modFormat = "%.2f";
+                    newValue = Damage::Instance().gcdToMinSpeed((int)(round(modRangeSelected.first * 100)));
                     break;
                 default:
                     break;
             }
-            auto& modRangeSelected = _baseParamModRangeSelected[baseParam];
-            auto& modRangeAllowed = _baseParamModRangeAllowed[baseParam];
-            auto& valueRangeSelected = _baseParamRangeSelected[baseParam];
-            auto& valueRangeAllowed = _baseParamRangeAllowed[baseParam];
-            ImGui::SliderFloat(("##" + modText + "Min").c_str(), &modRangeSelected.first, modRangeAllowed.first, modRangeSelected.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
-            if (ImGui::IsItemEdited()) {
-                int newValue;
-                switch (baseParam) {
-                    case BaseParam::Tenacity:
-                        newValue = Damage::Instance().tenModIntToMin((int)(round(modRangeSelected.first * 1000)));
-                        break;
-                    case BaseParam::Piety:
-                        newValue = Damage::Instance().pieModToMin((int)modRangeSelected.first);
-                        break;
-                    case BaseParam::SkillSpeed:
-                    case BaseParam::SpellSpeed:
-                        newValue = Damage::Instance().gcdToMinSpeed((int)(round(modRangeSelected.first * 100)));
-                        break;
-                    default:
-                        break;
-                }
-                valueRangeSelected.first = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
-            }
-            ImGui::SameLine();
-            ImGui::SliderFloat((modText + "##" + modText + "Max").c_str(), &modRangeSelected.second, modRangeSelected.first, modRangeAllowed.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
-            if (ImGui::IsItemEdited()) {
-                int newValue;
-                switch (baseParam) {
-                    case BaseParam::Tenacity:
-                        newValue = Damage::Instance().tenModIntToMax((int)(round(modRangeSelected.second * 1000)));
-                        break;
-                    case BaseParam::Piety:
-                        newValue = Damage::Instance().pieModToMax((int)modRangeSelected.second);
-                        break;
-                    case BaseParam::SkillSpeed:
-                    case BaseParam::SpellSpeed:
-                        newValue = Damage::Instance().gcdToMaxSpeed((int)(round(modRangeSelected.second * 100)));
-                        break;
-                    default:
-                        break;
-                }
-                valueRangeSelected.second = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
-            }
-            ImGui::PushItemWidth(150);
-            ImGui::InputInt(("##" + baseParamAbbr + "Min").c_str(), &valueRangeSelected.first);
-            if (ImGui::IsItemEdited()) {
-                valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
-                valueRangeSelected.first = min(max(valueRangeSelected.first, valueRangeAllowed.first), valueRangeAllowed.second);
-                modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
-            }
-            ImGui::SameLine();
-            ImGui::InputInt((baseParamAbbr + "##" + baseParamAbbr + "Max").c_str(), &valueRangeSelected.second);
-            if (ImGui::IsItemEdited()) {
-                valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
-                valueRangeSelected.second = min(max(valueRangeSelected.second, valueRangeAllowed.first), valueRangeAllowed.second);
-                modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);
-            }
+            valueRangeSelected.first = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
         }
+        ImGui::SameLine();
+        ImGui::SliderFloat((modText + "##" + modText + "Max").c_str(), &modRangeSelected.second, modRangeSelected.first, modRangeAllowed.second, modFormat.c_str(), ImGuiSliderFlags_AlwaysClamp); // TODO: combined slider
+        if (ImGui::IsItemEdited()) {
+            int newValue;
+            switch (baseParam) {
+                case BaseParam::Tenacity:
+                    newValue = Damage::Instance().tenModIntToMax((int)(round(modRangeSelected.second * 1000)));
+                    break;
+                case BaseParam::Piety:
+                    newValue = Damage::Instance().pieModToMax((int)modRangeSelected.second);
+                    break;
+                case BaseParam::SkillSpeed:
+                case BaseParam::SpellSpeed:
+                    newValue = Damage::Instance().gcdToMaxSpeed((int)(round(modRangeSelected.second * 100)));
+                    break;
+                default:
+                    break;
+            }
+            valueRangeSelected.second = min(max(newValue, valueRangeAllowed.first), valueRangeAllowed.second);
+        }
+        ImGui::PushItemWidth(150);
+        ImGui::InputInt(("##" + baseParamAbbr + "Min").c_str(), &valueRangeSelected.first);
+        if (ImGui::IsItemEdited()) {
+            valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
+            valueRangeSelected.first = min(max(valueRangeSelected.first, valueRangeAllowed.first), valueRangeAllowed.second);
+            modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
+        }
+        ImGui::SameLine();
+        ImGui::InputInt((baseParamAbbr + "##" + baseParamAbbr + "Max").c_str(), &valueRangeSelected.second);
+        if (ImGui::IsItemEdited()) {
+            valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
+            valueRangeSelected.second = min(max(valueRangeSelected.second, valueRangeAllowed.first), valueRangeAllowed.second);
+            modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);
+        }
+        ImGui::EndDisabled();
         ImGui::EndGroup();
     }
 }
@@ -592,11 +595,29 @@ void SolveTab::updateBaseParamRange(int baseParam) {
             break;
     }
 
-    // Clamp selection to allowed range
-    valueRangeSelected.first = max(valueRangeAllowed.first, valueRangeSelected.first);
-    valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
-    valueRangeSelected.second = min(valueRangeAllowed.second, valueRangeSelected.second);
-    valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
+    if (_limitBaseParam[baseParam]) {
+        // Clamp selection to allowed range
+        valueRangeSelected.first = max(valueRangeAllowed.first, valueRangeSelected.first);
+        valueRangeSelected.second = max(valueRangeSelected.first, valueRangeSelected.second);
+        valueRangeSelected.second = min(valueRangeAllowed.second, valueRangeSelected.second);
+        valueRangeSelected.first = min(valueRangeSelected.first, valueRangeSelected.second);
+
+        modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
+        modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);
+    } else {
+        // Set selection to allowed range
+        setSelectedRangeToAllowed(baseParam);
+    }
+}
+
+void SolveTab::setSelectedRangeToAllowed(int baseParam) {
+    auto& modRangeSelected = _baseParamModRangeSelected[baseParam];
+    auto& modRangeAllowed = _baseParamModRangeAllowed[baseParam];
+    auto& valueRangeSelected = _baseParamRangeSelected[baseParam];
+    auto& valueRangeAllowed = _baseParamRangeAllowed[baseParam];
+
+    valueRangeSelected.first = valueRangeAllowed.first;
+    valueRangeSelected.second = valueRangeAllowed.second;
 
     modRangeSelected.first = getModToDisplay(baseParam, valueRangeSelected.first);
     modRangeSelected.second = getModToDisplay(baseParam, valueRangeSelected.second);

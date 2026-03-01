@@ -78,6 +78,7 @@ private:
     void initBaseParamLimits();
     void updateBaseParamRanges();
     void updateBaseParamRange(int baseParam);
+    void setSelectedRangeToAllowed(int baseParam);
     float getModToDisplay(const int& baseParam, const int& value);
     void initGearList(bool updateRanges = true);
     void initFoodList(bool updateRanges = true);
