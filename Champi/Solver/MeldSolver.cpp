@@ -46,9 +46,7 @@ void MeldSolver::findBestMelds() {
     }
 
     // Build the possible stat range for every slot to check against user selected range
-    for (auto& [baseParam, limited] : _limitBaseParam) {
-        if (!limited) continue;
-
+    for (auto& [baseParam, _] : _baseParamRangeSelected) {
         auto& slotRange = _slotBaseParamRange[baseParam];
         pair<int, int> gearRange = make_pair(0, 0);
         slotRange.push_front(gearRange);
@@ -109,13 +107,10 @@ void MeldSolver::findBestMelds() {
 
         // Check we are in the selected stat range before adding more melds and food
         bool isInRange = true;
-        for (auto& [baseParam, limited] : _limitBaseParam) {
-            if (!limited) continue;
-
+        for (auto& [baseParam, selectedRange] : _baseParamRangeSelected) {
             // Check if there is any intersection between selectedRange and meldedBaseParamValue + slotRange
             auto meldedBaseParamValue = gearSet.meldedBaseParamValue.at(baseParam);
             auto& slotRange = _slotBaseParamRange[baseParam][slotIdx];
-            auto& selectedRange = _baseParamRangeSelected[baseParam];
             if (meldedBaseParamValue + slotRange.first > selectedRange.second || meldedBaseParamValue + slotRange.second < selectedRange.first) {
                 isInRange = false;
                 break;
@@ -132,12 +127,9 @@ void MeldSolver::findBestMelds() {
 
                 // Check we are in the selected stat range before saving the result
                 bool isInRange = true;
-                for (auto& [baseParam, limited] : _limitBaseParam) {
-                    if (!limited) continue;
-
+                for (auto& [baseParam, selectedRange] : _baseParamRangeSelected) {
                     // Check if fedMeldedBaseParamValue is in selectedRange
                     auto fedMeldedBaseParamValue = gearSet.fedMeldedBaseParamValue.at(baseParam);
-                    auto& selectedRange = _baseParamRangeSelected[baseParam];
                     if (fedMeldedBaseParamValue > selectedRange.second || fedMeldedBaseParamValue < selectedRange.first) {
                         isInRange = false;
                         break;
@@ -190,8 +182,7 @@ void MeldSolver::findBestMelds() {
     done = true;
 }
 
-void MeldSolver::setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected) {
-    _limitBaseParam = limitBaseParam;
+void MeldSolver::setBaseParamRanges(const map<int, pair<int, int>>& baseParamRangeSelected) {
     _baseParamRangeSelected = baseParamRangeSelected;
 }
 

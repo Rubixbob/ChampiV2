@@ -74,13 +74,11 @@ void SettingsTab::drawLightFileButton() {
         ImGui::Text("Reading");
         ImGui::SameLine();
         ImGui::Text(FileReader::Instance().currentFile.c_str());
-    }
-    else if (FileReader::Instance().isWriting) {
+    } else if (FileReader::Instance().isWriting) {
         ImGui::Text("Writing");
         ImGui::SameLine();
         ImGui::Text(FileReader::Instance().currentFile.c_str());
-    }
-    else {
+    } else {
         if (ImGui::Button("Generate Light Files")) {
             _readAllFilesThread = jthread(&FileReader::readAllFiles, &FileReader::Instance());
         }

@@ -34,7 +34,7 @@ public:
 
 	void findBestMelds();
 
-	void setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected);
+	void setBaseParamRanges(const map<int, pair<int, int>>& baseParamRangeSelected);
 private:
 	const Job* _job = nullptr;
 	vector<Food*> _foodList;
@@ -43,7 +43,6 @@ private:
 
 	atomic_int* _solveActiveThreads = nullptr;
 
-	map<int, bool> _limitBaseParam;
 	map<int, pair<int, int>> _baseParamRangeSelected;
 	map<int, deque<pair<int, int>>> _slotBaseParamRange;
 

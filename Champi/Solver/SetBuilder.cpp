@@ -35,8 +35,13 @@ void SetBuilder::cancelSolve() {
 }
 
 void SetBuilder::setBaseParamRanges(const map<int, bool>& limitBaseParam, const map<int, pair<int, int>>& baseParamRangeSelected) {
-    _limitBaseParam = limitBaseParam;
-    _baseParamRangeSelected = baseParamRangeSelected;
+    _baseParamRangeSelected.clear();
+    _currentGearBaseParamRange.clear();
+    _foodBaseParamRange.clear();
+    for (auto& [baseParam, limited] : limitBaseParam) {
+        if (!limited) continue;
+        _baseParamRangeSelected[baseParam] = baseParamRangeSelected.at(baseParam);
+    }
 }
 
 void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int, vector<GearPiece*>>& gearPieces, const vector<Food*>& foodList, const vector<int>& releventMateriaBaseParam) {
@@ -54,8 +59,7 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
 
         if (slot == 12) {
             _maxCounter *= _ringPerms;
-        }
-        else {
+        } else {
             _maxCounter *= gearPieces.at(slot).size();
         }
         _equipSlots.push_back(slot);
@@ -65,13 +69,11 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
     // Base meld solver that will be copied for each thread
     auto gearPiecesToSolve = initGear(gearPieces);
     MeldSolver defaultMeldSolver(job, gearPiecesToSolve, foodList, releventMateriaBaseParam, &activeThreads, stopToken);
-    defaultMeldSolver.setBaseParamRanges(_limitBaseParam, _baseParamRangeSelected);
+    defaultMeldSolver.setBaseParamRanges(_baseParamRangeSelected);
 
     // Set stat ranges to check against user selected range
     // They are updated when switching a piece to avoid rebuilding the whole thing every time
-    for (auto& [baseParam, limited] : _limitBaseParam) {
-        if (!limited) continue;
-
+    for (auto& [baseParam, _] : _baseParamRangeSelected) {
         auto& currentGearRange = _currentGearBaseParamRange[baseParam];
         currentGearRange.first = Damage::Instance().getStartingValue(baseParam);
         currentGearRange.second = Damage::Instance().getStartingValue(baseParam);
@@ -109,11 +111,8 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
             
             // Check we are in the selected stat range before solving melds for this gear pieces combination
             bool isInRange = true;
-            for (auto& [baseParam, limited] : _limitBaseParam) {
-                if (!limited) continue;
-                
+            for (auto& [baseParam, selectedRange] : _baseParamRangeSelected) {
                 // Check if there is any intersection between selectedRange and currentGearRange + foodRange
-                auto& selectedRange = _baseParamRangeSelected[baseParam];
                 auto& currentGearRange = _currentGearBaseParamRange[baseParam];
                 auto& foodRange = _foodBaseParamRange[baseParam];
                 if (currentGearRange.first + foodRange.first > selectedRange.second || currentGearRange.second + foodRange.second < selectedRange.first) {
@@ -247,28 +246,21 @@ void SetBuilder::switchPiece(const map<int, vector<GearPiece*>>& gearPieces, vec
 }
 
 void SetBuilder::removePieceRanges(GearPiece* piece) {
-    for (auto& [baseParam, limited] : _limitBaseParam) {
-        if (!limited) continue;
-
-        _currentGearBaseParamRange[baseParam].first -= piece->minBaseParamValue[baseParam];
-        _currentGearBaseParamRange[baseParam].second -= piece->maxBaseParamValue[baseParam];
+    for (auto& [baseParam, currentGearRange] : _currentGearBaseParamRange) {
+        currentGearRange.first -= piece->minBaseParamValue[baseParam];
+        currentGearRange.second -= piece->maxBaseParamValue[baseParam];
     }
 }
 
 void SetBuilder::addPieceRanges(GearPiece* piece) {
-    for (auto& [baseParam, limited] : _limitBaseParam) {
-        if (!limited) continue;
-
-        _currentGearBaseParamRange[baseParam].first += piece->minBaseParamValue[baseParam];
-        _currentGearBaseParamRange[baseParam].second += piece->maxBaseParamValue[baseParam];
+    for (auto& [baseParam, currentGearRange] : _currentGearBaseParamRange) {
+        currentGearRange.first += piece->minBaseParamValue[baseParam];
+        currentGearRange.second += piece->maxBaseParamValue[baseParam];
     }
 }
 
 void SetBuilder::updateFoodBaseParamRanges(const vector<Food*>& foodList) {
-    for (auto& [baseParam, limited] : _limitBaseParam) {
-        if (!limited) continue;
-
-        auto& currentGearRange = _currentGearBaseParamRange[baseParam];
+    for (auto& [baseParam, currentGearRange] : _currentGearBaseParamRange) {
         auto& foodRange = _foodBaseParamRange[baseParam];
         foodRange.first = foodList.size() > 0 ? INT32_MAX : 0;
         foodRange.second = 0;

@@ -57,7 +57,6 @@ private:
 	size_t _switchCounter;
 	size_t _maxCounter;
 
-	map<int, bool> _limitBaseParam;
 	map<int, pair<int, int>> _baseParamRangeSelected;
 	map<int, pair<int, int>> _currentGearBaseParamRange;
 	map<int, pair<int, int>> _foodBaseParamRange;

@@ -91,8 +91,7 @@ void SolveTab::drawGearTab() {
                 if (ImGui::HandSelectable(item->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
                     if (isSelected) {
                         _selectedGearPieces[slot].erase(idx);
-                    }
-                    else {
+                    } else {
                         _selectedGearPieces[slot].insert(idx);
                     }
                     updateBaseParamRanges();
@@ -161,8 +160,7 @@ void SolveTab::drawFoodTab() {
             if (ImGui::HandSelectable(food->name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
                 if (isSelected) {
                     _selectedFoodIdx.erase(idx);
-                }
-                else {
+                } else {
                     _selectedFoodIdx.insert(idx);
                 }
                 updateBaseParamRanges();
