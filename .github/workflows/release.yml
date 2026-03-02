@@ -20,7 +20,7 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Build solution (Release x64)
-      run: msbuild Champi/Champi.slnx /p:Configuration=Release /p:Platform=x64
+      run: msbuild Champi/Champi.vcxproj /restore /p:Configuration=Release /p:Platform=x64
 
     - name: Prepare release folder
       run: |

@@ -174,9 +174,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="Resources\Champi.ico">
       <Filter>Resource Files</Filter>
     </Image>
