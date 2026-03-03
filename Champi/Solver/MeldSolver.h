@@ -45,7 +45,4 @@ private:
 
 	map<int, pair<int, int>> _baseParamRangeSelected;
 	map<int, deque<pair<int, int>>> _slotBaseParamRange;
-
-	static uint64_t getKey3(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue);
-	static uint64_t getKey4(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue);
 };

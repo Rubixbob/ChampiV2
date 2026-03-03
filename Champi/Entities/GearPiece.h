@@ -22,6 +22,7 @@ struct MeldPerm
 	map<int, map<int, int>> baseParamMatCount; // Mat count per grade then per baseParam
 	map<int, int> baseParamMatValue;
 	map<int, int> baseParamTotalValue;
+	uint64_t matKey = 0;
 };
 
 class GearPiece

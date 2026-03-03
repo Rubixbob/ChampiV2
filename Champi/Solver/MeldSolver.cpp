@@ -14,25 +14,10 @@ MeldSolver::~MeldSolver() {
 }
 
 void MeldSolver::findBestMelds() {
-    vector<unordered_map<int, unordered_set<uint64_t>>> statCombs(gearPieces.size());
+    vector<unordered_set<uint64_t>> matStatCombs(gearPieces.size());
     vector<size_t> currentPerm(gearPieces.size());
 
     GearSet gearSet(_job, gearPieces);
-
-    // List of stats used to build the key for saving already explored stat combinations
-    vector<int> jobBaseParams;
-    int ssBaseParam = _job->getSpeedBaseParam();
-    for (auto& baseParam : _releventMateriaBaseParam) {
-        if (baseParam == ssBaseParam) continue;
-        jobBaseParams.push_back(baseParam);
-    }
-
-    if (jobBaseParams.size() < 3 || jobBaseParams.size() > 4) {
-        cout << "We shouldn't be here" << endl;
-        return;
-    }
-
-    auto getKey = jobBaseParams.size() == 4 ? getKey4 : getKey3;
 
     // Structure to display solving progress
     float maxCounter = 1.0f;
@@ -96,14 +81,10 @@ void MeldSolver::findBestMelds() {
     size_t maxSlotIdx = gearPieces.size() - 1;
     while (looping) {
         if (_solveStopToken.stop_requested()) {
-            statCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
+            matStatCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
             return;
         }
         gearSet.addMeldPerm(&gearPieces[slotIdx]->meldPerms[currentPerm[slotIdx]]);
-
-        auto key = getKey(jobBaseParams, gearSet.meldedBaseParamValue);
-        auto meldedSsBaseParamValue = gearSet.meldedBaseParamValue.at(ssBaseParam);
-        auto& statCombsSS = statCombs[slotIdx][meldedSsBaseParamValue];
 
         // Check we are in the selected stat range before adding more melds and food
         bool isInRange = true;
@@ -117,7 +98,7 @@ void MeldSolver::findBestMelds() {
             }
         }
 
-        auto [it, inserted] = statCombsSS.insert(key);
+        auto [it, inserted] = matStatCombs[slotIdx].insert(gearSet.matKey);
         inserted = inserted && isInRange;
         if (inserted && slotIdx == maxSlotIdx) {
             gearSet.initFedMeldedStats();
@@ -177,24 +158,11 @@ void MeldSolver::findBestMelds() {
         solvingProgress = currentCount / maxCounter;
     }
 
-    statCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
+    matStatCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread
     (*_solveActiveThreads)--;
     done = true;
 }
 
 void MeldSolver::setBaseParamRanges(const map<int, pair<int, int>>& baseParamRangeSelected) {
     _baseParamRangeSelected = baseParamRangeSelected;
-}
-
-uint64_t MeldSolver::getKey3(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue) {
-    return (uint64_t)baseParamValue.at(jobBaseParams[0]) << 32
-         | (uint64_t)baseParamValue.at(jobBaseParams[1]) << 16
-         | (uint64_t)baseParamValue.at(jobBaseParams[2]);
-}
-
-uint64_t MeldSolver::getKey4(const vector<int>& jobBaseParams, const map<int, int>& baseParamValue) {
-    return (uint64_t)baseParamValue.at(jobBaseParams[0]) << 48
-         | (uint64_t)baseParamValue.at(jobBaseParams[1]) << 32
-         | (uint64_t)baseParamValue.at(jobBaseParams[2]) << 16
-         | (uint64_t)baseParamValue.at(jobBaseParams[3]);
 }

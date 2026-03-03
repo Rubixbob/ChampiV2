@@ -46,6 +46,7 @@ void GearSet::addMeldPerm(MeldPerm* meldPerm) {
     for (auto& baseParamIt : meldPerm->baseParamMatValue) {
         meldedBaseParamValue[baseParamIt.first] += baseParamIt.second;
     }
+    matKey += meldPerm->matKey;
 }
 
 void GearSet::popMeldPerm() {
@@ -55,6 +56,7 @@ void GearSet::popMeldPerm() {
     for (auto& baseParamIt : meldPerm->baseParamMatValue) {
         meldedBaseParamValue[baseParamIt.first] -= baseParamIt.second;
     }
+    matKey -= meldPerm->matKey;
 }
 
 void GearSet::addFood(Food* food) {
@@ -86,10 +88,6 @@ void GearSet::initFedMeldedStats() {
     }
 }
 
-float GearSet::meldedDamageMod() {
-    return calcDamageMod(meldedBaseParamValue);
-}
-
 float GearSet::fedMeldedDamageMod() {
     return calcDamageMod(fedMeldedBaseParamValue);
 }
@@ -100,10 +98,6 @@ float GearSet::calcDamageMod(const map<int, int>& baseParamValue) {
         Damage::Instance().damageMod(damagePhys, mainBaseParamValue, baseParamValue.at(BaseParam::DirectHit), baseParamValue.at(BaseParam::CriticalHit), baseParamValue.at(BaseParam::Determination));
     damageMod = result;
     return result;
-}
-
-int GearSet::meldedGcd() {
-    return gcd(meldedBaseParamValue);
 }
 
 int GearSet::fedMeldedGcd() {

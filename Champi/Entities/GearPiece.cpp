@@ -23,13 +23,18 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
         return;
     }
 
+    set<int> releventMateriaBaseParamSet;
+    for (auto& baseParam : releventMateriaBaseParam) {
+        releventMateriaBaseParamSet.insert(baseParam);
+    }
+
     // Find capped substat
     int substatCap = -1;
     int maxReleventBaseParam = -1;
     map<int, int> baseParamToIdx;
     for (int i = 0; i < 6; i++) {
         if (baseParam[i] == 0) continue;
-        if (find(releventMateriaBaseParam.begin(), releventMateriaBaseParam.end(), baseParam[i]) == releventMateriaBaseParam.end()) continue;
+        if (!releventMateriaBaseParamSet.contains(baseParam[i])) continue;
 
         if (baseParamValue[i] > substatCap) {
             substatCap = baseParamValue[i];
@@ -73,7 +78,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
 
     // Build all meld permutations
     int baseParamIdx[5] = { 0 }; // Index of what materia to use for each slot
-    set<string> permStats;
+    set<uint64_t> permStats;
 	float materiaIgnorePercent = Settings::Instance().minMateriaRatio;
     int maxSlot = isAdvancedMeldingPermitted ? 4 : materiaSlotCount - 1;
     int firstOvermeldSlot = isAdvancedMeldingPermitted ? materiaSlotCount : -1;
@@ -112,16 +117,18 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
         }
 
         if (!ignorePerm) {
-            // Save stats to prevent duplicates from pentamelds
-            string permKey = "";
-            for (int i = 0; i < releventBaseParam.size(); i++) {
-                permKey += to_string(perm.baseParamMatValue.contains(releventBaseParam[i])  ? perm.baseParamMatValue[releventBaseParam[i]] : 0);
-                if (i < releventBaseParam.size() - 1) permKey += "|";
+            int i = 0;
+            for (auto& it : releventMateriaBaseParamSet) {
+                if (perm.baseParamMatValue.contains(it)) {
+                    perm.matKey |= (uint64_t)perm.baseParamMatValue[it] << (12 * i);
+                }
+                i++;
             }
-            if (permStats.contains(permKey)) {
+            // Save stats to prevent duplicates from pentamelds
+            if (permStats.contains(perm.matKey)) {
                 ignorePerm = true;
             } else {
-                permStats.insert(permKey);
+                permStats.insert(perm.matKey);
             }
         }
 

@@ -38,6 +38,7 @@ public:
 	map<int, int> meldedBaseParamValue;
 	map<int, int> fedMeldedBaseParamValue;
 	int mainBaseParamValue;
+	uint64_t matKey = 0;
 
 	void addMeldPerm(MeldPerm* meldPerm);
 	void popMeldPerm();
@@ -45,10 +46,8 @@ public:
 	void popFood();
 	void initFedMeldedStats();
 
-	float meldedDamageMod();
 	float fedMeldedDamageMod();
 
-	int meldedGcd();
 	int fedMeldedGcd();
 	string gcdStr();
 
