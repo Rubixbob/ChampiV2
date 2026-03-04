@@ -87,5 +87,5 @@ public:
 		{1, "Left"}
 	};
 
-	void setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList);
+	void setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList, bool allowOvermelds);
 };

@@ -40,6 +40,7 @@ private:
     int _gearItemLevelFilter[2] = { -1, -1 };
     int _foodItemLevelFilter[2] = { -1, -1 };
     bool _selectResultsTab = false;
+    bool _allowOvermelds = true;
 
     map<int, bool> _limitBaseParam;
     map<int, pair<float, float>> _baseParamModRangeSelected;
@@ -70,7 +71,9 @@ private:
     void drawTime(string preText, int64_t timeValue);
     void selectResult(const GearSet& result);
     void drawSelectedResultModal();
+    void drawJobDropdown();
     void drawSolveButton();
+    void drawOvermeldCheckbox();
     void drawLimitBaseParamGroups();
     void drawClipboardButton(const char* label, function<string()> textProvider, const ImVec2& size = ImVec2(0, 0));
 
@@ -83,6 +86,7 @@ private:
     void initGearList(bool updateRanges = true);
     void initFoodList(bool updateRanges = true);
     void selectGearItemLvl(bool updateRanges = true);
+    void updateGearPiecesToDisplayMeldPerms();
     void selectFoodItemLvl(bool updateRanges = true);
     void setReleventStats();
     void setColumnHeaders();

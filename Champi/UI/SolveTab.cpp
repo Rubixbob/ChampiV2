@@ -11,43 +11,36 @@ SolveTab::~SolveTab() {
 }
 
 void SolveTab::draw() {
-    ImGui::Text("Job");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(100);
-    if (ImGui::BeginHandCombo("##Job", _selectedJobName.c_str())) {
-        for (auto& job : Data::Instance().jobList) {
-            const bool isSelected = (_selectedJobName == job.name);
-            if (ImGui::HandSelectable(job.name.c_str(), isSelected)) {
-                _selectedJobName = job.name;
-                selectJob();
-            }
-            if (isSelected) ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
+    ImGui::BeginGroup();
+    drawJobDropdown();
 
-    ImGui::SameLine();
-    drawSolveButton();
+    if (_selectedJob) {
+        ImGui::SameLine();
+        drawSolveButton();
+
+        drawOvermeldCheckbox();
+    }
+    ImGui::EndGroup();
 
     if (_selectedJob) {
         drawLimitBaseParamGroups();
-    }
 
-    if (ImGui::BeginTabBar("SolveTabBar")) {
-        if (ImGui::BeginHandTabItem("Gear")) {
-            drawGearTab();
-            ImGui::EndTabItem();
+        if (ImGui::BeginTabBar("SolveTabBar")) {
+            if (ImGui::BeginHandTabItem("Gear")) {
+                drawGearTab();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginHandTabItem("Food")) {
+                drawFoodTab();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginHandTabItem("Results", nullptr, _selectResultsTab ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None)) {
+                _selectResultsTab = false;
+                drawResultsTab();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
         }
-        if (ImGui::BeginHandTabItem("Food")) {
-            drawFoodTab();
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginHandTabItem("Results", nullptr, _selectResultsTab ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None)) {
-            _selectResultsTab = false;
-            drawResultsTab();
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
     }
 }
 
@@ -112,7 +105,7 @@ void SolveTab::drawGearTab() {
                 ImGui::TableSetColumnIndex(col++);
                 ImGui::TextUnformatted(to_string(item->levelItem).c_str());
                 ImGui::TableSetColumnIndex(col++);
-                ImGui::TextUnformatted(to_string(item->isAdvancedMeldingPermitted ? 5 : item->materiaSlotCount).c_str());
+                ImGui::TextUnformatted(to_string(item->isAdvancedMeldingPermitted && _allowOvermelds ? 5 : item->materiaSlotCount).c_str());
             }
             if (slot < 12) {
                 ImGui::TableNextRow();
@@ -321,6 +314,23 @@ void SolveTab::drawSelectedResultModal() {
     ImGui::PopStyleVar(2);
 }
 
+void SolveTab::drawJobDropdown() {
+    ImGui::Text("Job");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(100);
+    if (ImGui::BeginHandCombo("##Job", _selectedJobName.c_str())) {
+        for (auto& job : Data::Instance().jobList) {
+            const bool isSelected = (_selectedJobName == job.name);
+            if (ImGui::HandSelectable(job.name.c_str(), isSelected)) {
+                _selectedJobName = job.name;
+                selectJob();
+            }
+            if (isSelected) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+}
+
 void SolveTab::drawSolveButton() {
     vector<string> solveButtonErrorMessages;
     if (_selectedJob == nullptr) solveButtonErrorMessages.push_back("No job selected");
@@ -365,6 +375,13 @@ void SolveTab::drawSolveButton() {
         SetBuilder::Instance().cancelSolve();
     }
     ImGui::EndDisabled();
+}
+
+void SolveTab::drawOvermeldCheckbox() {
+    ImGui::Checkbox("Allow Overmelds", &_allowOvermelds);
+    if (ImGui::IsItemEdited()) {
+        updateGearPiecesToDisplayMeldPerms();
+    }
 }
 
 void SolveTab::drawLimitBaseParamGroups() {
@@ -712,14 +729,18 @@ void SolveTab::selectGearItemLvl(bool updateRanges) {
             });
     }
 
-    for (auto& it : _gearPiecesToDisplay) {
-        for (auto& gearPiece : it.second) {
-            gearPiece->setMeldPerms(_releventMateriaBaseParam, Data::Instance().materiaList);
-        }
-    }
+    updateGearPiecesToDisplayMeldPerms();
 
     if (updateRanges) {
         updateBaseParamRanges();
+    }
+}
+
+void SolveTab::updateGearPiecesToDisplayMeldPerms() {
+    for (auto& it : _gearPiecesToDisplay) {
+        for (auto& gearPiece : it.second) {
+            gearPiece->setMeldPerms(_releventMateriaBaseParam, Data::Instance().materiaList ,_allowOvermelds);
+        }
     }
 }
 

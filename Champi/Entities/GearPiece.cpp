@@ -10,7 +10,7 @@ GearPiece::~GearPiece()
     //dtor
 }
 
-void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList) {
+void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector<Materia>& materiaList, bool allowOvermelds) {
     meldPerms.clear();
     if (materiaSlotCount == 0) {
         MeldPerm perm;
@@ -22,6 +22,10 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
         meldPerms.push_back(perm);
         return;
     }
+
+    float materiaIgnorePercent = Settings::Instance().minMateriaRatio;
+    int maxSlot = isAdvancedMeldingPermitted && allowOvermelds ? 4 : materiaSlotCount - 1;
+    int firstOvermeldSlot = isAdvancedMeldingPermitted && allowOvermelds ? materiaSlotCount : -1;
 
     set<int> releventMateriaBaseParamSet;
     for (auto& baseParam : releventMateriaBaseParam) {
@@ -56,8 +60,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
         if (materia.levelItem > levelItem) continue; // Ignore too high grade materia
         if (find(releventBaseParam.begin(), releventBaseParam.end(), materia.baseParam) == releventBaseParam.end()) continue;
 
-        for (int slot = 0; slot < 5; slot++) {
-            if (slot >= materiaSlotCount && !isAdvancedMeldingPermitted) break;
+        for (int slot = 0; slot <= maxSlot; slot++) {
             int overmeldIdx = slot - materiaSlotCount;
             if (overmeldIdx >= 0 && materia.overmeldPercent[overmeldIdx] == 0) continue;
 
@@ -68,8 +71,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
     }
 
     // Sanity check
-    for (int slot = 0; slot < 5; slot++) {
-        if (slot >= materiaSlotCount && !isAdvancedMeldingPermitted) break;
+    for (int slot = 0; slot <= maxSlot; slot++) {
         if (slotMateria[slot].size() != releventBaseParam.size()) {
             cout << "slotMateria has the wrong size, we shouldn't be here" << slotMateria[slot].size() << " " << releventBaseParam.size() << endl;
             return;
@@ -79,16 +81,11 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
     // Build all meld permutations
     int baseParamIdx[5] = { 0 }; // Index of what materia to use for each slot
     set<uint64_t> permStats;
-	float materiaIgnorePercent = Settings::Instance().minMateriaRatio;
-    int maxSlot = isAdvancedMeldingPermitted ? 4 : materiaSlotCount - 1;
-    int firstOvermeldSlot = isAdvancedMeldingPermitted ? materiaSlotCount : -1;
     bool done = false;
     while (!done) {
         MeldPerm perm;
         perm.gearPiece = this;
-        for (int slot = 0; slot < 5; slot++) {
-            if (slot >= materiaSlotCount && !isAdvancedMeldingPermitted) break;
-
+        for (int slot = 0; slot <= maxSlot; slot++) {
             auto materia = slotMateria[slot][releventBaseParam[baseParamIdx[slot]]];
             perm.materia[slot] = materia;
             perm.baseParamMatCount[materia->grade][materia->baseParam]++;
@@ -100,9 +97,7 @@ void GearPiece::setMeldPerms(const vector<int>& releventMateriaBaseParam, vector
             perm.baseParamTotalValue[baseParam[i]] = baseParamValue[i];
         }
         bool ignorePerm = false;
-        for (int slot = 0; slot < 5; slot++) {
-            if (slot >= materiaSlotCount && !isAdvancedMeldingPermitted) break;
-
+        for (int slot = 0; slot <= maxSlot; slot++) {
             int materiaBaseParam = perm.materia[slot]->baseParam;
 			int materiaValue = perm.materia[slot]->value;
 
