@@ -35,6 +35,7 @@ public:
 	int damageMag;
 	int delayms;
 
+	map<int, int> gearBaseParamValue;
 	map<int, int> meldedBaseParamValue;
 	map<int, int> fedMeldedBaseParamValue;
 	int mainBaseParamValue;

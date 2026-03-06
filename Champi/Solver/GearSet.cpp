@@ -9,12 +9,12 @@ GearSet::GearSet(const Job* job, const vector<GearPiece*>& gearPieces)
 {
     selectedJob = job;
     mainBaseParamValue = Damage::Instance().getStartingValue(job->primaryStat) * job->primaryStatMod / 100;
-    meldedBaseParamValue[BaseParam::DirectHit] = Damage::Instance().getStartingValue(BaseParam::DirectHit);
-    meldedBaseParamValue[BaseParam::CriticalHit] = Damage::Instance().getStartingValue(BaseParam::CriticalHit);
-    meldedBaseParamValue[BaseParam::Determination] = Damage::Instance().getStartingValue(BaseParam::Determination);
-    meldedBaseParamValue[job->getSpeedBaseParam()] = Damage::Instance().getStartingValue(job->getSpeedBaseParam());
-    if (job->role == 1) meldedBaseParamValue[BaseParam::Tenacity] = Damage::Instance().getStartingValue(BaseParam::Tenacity);
-    if (job->role == 4) meldedBaseParamValue[BaseParam::Piety] = Damage::Instance().getStartingValue(BaseParam::Piety);
+    gearBaseParamValue[BaseParam::DirectHit] = Damage::Instance().getStartingValue(BaseParam::DirectHit);
+    gearBaseParamValue[BaseParam::CriticalHit] = Damage::Instance().getStartingValue(BaseParam::CriticalHit);
+    gearBaseParamValue[BaseParam::Determination] = Damage::Instance().getStartingValue(BaseParam::Determination);
+    gearBaseParamValue[job->getSpeedBaseParam()] = Damage::Instance().getStartingValue(job->getSpeedBaseParam());
+    if (job->role == 1) gearBaseParamValue[BaseParam::Tenacity] = Damage::Instance().getStartingValue(BaseParam::Tenacity);
+    if (job->role == 4) gearBaseParamValue[BaseParam::Piety] = Damage::Instance().getStartingValue(BaseParam::Piety);
 
     for (auto piece : gearPieces) {
         damagePhys += piece->damagePhys;
@@ -24,9 +24,9 @@ GearSet::GearSet(const Job* job, const vector<GearPiece*>& gearPieces)
             if (piece->baseParam[i] == job->primaryStat) {
                 mainBaseParamValue += piece->baseParamValue[i];
             } else {
-                auto meldedBaseParamIt = meldedBaseParamValue.find(piece->baseParam[i]);
-                if (meldedBaseParamIt == meldedBaseParamValue.end()) continue;
-                meldedBaseParamIt->second += piece->baseParamValue[i];
+                auto gearBaseParamIt = gearBaseParamValue.find(piece->baseParam[i]);
+                if (gearBaseParamIt == gearBaseParamValue.end()) continue;
+                gearBaseParamIt->second += piece->baseParamValue[i];
             }
         }
     }
@@ -43,9 +43,6 @@ GearSet::~GearSet()
 void GearSet::addMeldPerm(MeldPerm* meldPerm) {
     meldPerms.push_back(meldPerm);
 
-    for (auto& baseParamIt : meldPerm->baseParamMatValue) {
-        meldedBaseParamValue[baseParamIt.first] += baseParamIt.second;
-    }
     matKey += meldPerm->matKey;
 }
 
@@ -53,9 +50,6 @@ void GearSet::popMeldPerm() {
     auto meldPerm = meldPerms.back();
     meldPerms.pop_back();
 
-    for (auto& baseParamIt : meldPerm->baseParamMatValue) {
-        meldedBaseParamValue[baseParamIt.first] -= baseParamIt.second;
-    }
     matKey -= meldPerm->matKey;
 }
 
@@ -83,8 +77,12 @@ void GearSet::popFood() {
 }
 
 void GearSet::initFedMeldedStats() {
-    for (auto& it : meldedBaseParamValue) {
-        fedMeldedBaseParamValue[it.first] = it.second;
+    int i = 0;
+    for (auto& it : gearBaseParamValue) {
+        int value = it.second + ((matKey >> (12 * i)) & 0xFFF);
+        meldedBaseParamValue[it.first] = value;
+        fedMeldedBaseParamValue[it.first] = value;
+        i++;
     }
 }
 

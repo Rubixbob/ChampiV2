@@ -31,9 +31,10 @@ void MeldSolver::findBestMelds() {
     }
 
     // Build the possible stat range for every slot to check against user selected range
-    for (auto& [baseParam, _] : _baseParamRangeSelected) {
-        auto& slotRange = _slotBaseParamRange[baseParam];
-        pair<int, int> gearRange = make_pair(0, 0);
+    for (auto& [baseParamIdx, _] : _baseParamRangeSelected) {
+        auto baseParam = _releventMateriaBaseParam[baseParamIdx];
+        auto& slotRange = _slotBaseParamRange[baseParamIdx];
+        pair<int, int> gearRange = make_pair(gearSet.gearBaseParamValue.at(baseParam), gearSet.gearBaseParamValue.at(baseParam));
         slotRange.push_front(gearRange);
         for (auto slot = gearPieces.size() - 1; slot >= 1; slot--) {
             auto piece = gearPieces[slot];
@@ -88,11 +89,11 @@ void MeldSolver::findBestMelds() {
 
         // Check we are in the selected stat range before adding more melds and food
         bool isInRange = true;
-        for (auto& [baseParam, selectedRange] : _baseParamRangeSelected) {
+        for (auto& [baseParamIdx, selectedRange] : _baseParamRangeSelected) {
             // Check if there is any intersection between selectedRange and meldedBaseParamValue + slotRange
-            auto meldedBaseParamValue = gearSet.meldedBaseParamValue.at(baseParam);
-            auto& slotRange = _slotBaseParamRange[baseParam][slotIdx];
-            if (meldedBaseParamValue + slotRange.first > selectedRange.second || meldedBaseParamValue + slotRange.second < selectedRange.first) {
+            auto matBaseParamValue = (gearSet.matKey >> (12 * baseParamIdx)) & 0xFFF;
+            auto& slotRange = _slotBaseParamRange[baseParamIdx][slotIdx];
+            if (matBaseParamValue + slotRange.first > selectedRange.second || matBaseParamValue + slotRange.second < selectedRange.first) {
                 isInRange = false;
                 break;
             }
@@ -108,8 +109,9 @@ void MeldSolver::findBestMelds() {
 
                 // Check we are in the selected stat range before saving the result
                 bool isInRange = true;
-                for (auto& [baseParam, selectedRange] : _baseParamRangeSelected) {
+                for (auto& [baseParamIdx, selectedRange] : _baseParamRangeSelected) {
                     // Check if fedMeldedBaseParamValue is in selectedRange
+                    auto baseParam = _releventMateriaBaseParam[baseParamIdx];
                     auto fedMeldedBaseParamValue = gearSet.fedMeldedBaseParamValue.at(baseParam);
                     if (fedMeldedBaseParamValue > selectedRange.second || fedMeldedBaseParamValue < selectedRange.first) {
                         isInRange = false;
@@ -164,5 +166,9 @@ void MeldSolver::findBestMelds() {
 }
 
 void MeldSolver::setBaseParamRanges(const map<int, pair<int, int>>& baseParamRangeSelected) {
-    _baseParamRangeSelected = baseParamRangeSelected;
+    for (int i = 0; i < _releventMateriaBaseParam.size(); i++) {
+        auto baseParam = _releventMateriaBaseParam[i];
+        if (!baseParamRangeSelected.contains(baseParam)) continue;
+        _baseParamRangeSelected[i] = baseParamRangeSelected.at(baseParam);
+    }
 }
