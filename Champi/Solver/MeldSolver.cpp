@@ -20,7 +20,6 @@ void MeldSolver::findBestMelds() {
     GearSet gearSet(_job, gearPieces);
 
     // Structure to display solving progress
-    float maxCounter = 1.0f;
     vector<float> progressWeight(gearPieces.size(), 1.0f);
     for (int i = 0; i < gearPieces.size(); i++) {
         auto permCount = gearPieces[i]->meldPerms.size();
@@ -29,6 +28,7 @@ void MeldSolver::findBestMelds() {
             progressWeight[j] *= permCount;
         }
     }
+    logMaxCounter = logf(maxCounter);
 
     // Build the possible stat range for every slot to check against user selected range
     for (auto& [baseParamIdx, _] : _baseParamRangeSelected) {
@@ -139,25 +139,21 @@ void MeldSolver::findBestMelds() {
         } else {
             gearSet.popMeldPerm();
             currentPerm[slotIdx]++;
+            currentCount += progressWeight[slotIdx];
             while (currentPerm[slotIdx] >= gearPieces[slotIdx]->meldPerms.size()) {
                 if (slotIdx > 0) {
+                    currentCount -= currentPerm[slotIdx] * progressWeight[slotIdx];
                     currentPerm[slotIdx] = 0;
                     slotIdx--;
                     gearSet.popMeldPerm();
                     currentPerm[slotIdx]++;
+                    currentCount += progressWeight[slotIdx];
                 } else {
                     looping = false;
                     break;
                 }
             }
         }
-
-        // Update progress for visual feedback
-        float currentCount = 0;
-        for (size_t slot = 0; slot < gearPieces.size(); slot++) {
-            currentCount += currentPerm[slot] * progressWeight[slot];
-        }
-        solvingProgress = currentCount / maxCounter;
     }
 
     matStatCombs.clear(); // Clear memory in this thread otherwise it would slow down the main thread

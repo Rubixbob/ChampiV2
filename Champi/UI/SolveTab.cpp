@@ -179,12 +179,23 @@ void SolveTab::drawFoodTab() {
 void SolveTab::drawResultsTab() {
     if (SetBuilder::Instance().isSolving) {
         ImGui::ProgressBar((float)SetBuilder::Instance().solvingProgress, ImVec2(200.0f, 0.0f));
-        //ImGui::SameLine();
-        //drawTime("Elapsed: ", SetBuilder::Instance().elapsed);
+
         ImGui::SameLine();
+        auto cursorX = ImGui::GetCursorPosX();
+        drawTime("Elapsed: ", SetBuilder::Instance().elapsed);
+
+        ImGui::SameLine();
+        // Offset to leave enough space for the text to not constantly move
+        auto nextCursorX = cursorX + ImGui::CalcTextSize("Elapsed: 9999m99s999").x + ImGui::GetStyle().ItemSpacing.x;
+        if (nextCursorX > ImGui::GetCursorPosX()) ImGui::SetCursorPosX(nextCursorX);
+        cursorX = ImGui::GetCursorPosX();
         drawTime("Remaining: ", SetBuilder::Instance().estimatedRemaining);
-        //ImGui::SameLine();
-        //ImGui::TextUnformatted(("Active threads: " + to_string(SetBuilder::Instance().activeThreads) + " / " + to_string(SetBuilder::Instance().maxHardwareThreads)).c_str());
+
+        ImGui::SameLine();
+        // Offset to leave enough space for the text to not constantly move
+        nextCursorX = cursorX + ImGui::CalcTextSize("Remaining: 9999m99s999").x + ImGui::GetStyle().ItemSpacing.x;
+        if (nextCursorX > ImGui::GetCursorPosX()) ImGui::SetCursorPosX(nextCursorX);
+        ImGui::TextUnformatted(("Active threads: " + to_string(SetBuilder::Instance().activeThreads) + " / " + to_string(SetBuilder::Instance().maxHardwareThreads)).c_str());
     } else if (SetBuilder::Instance().solvingTime > 0) {
         drawTime("Solving done in: ", SetBuilder::Instance().solvingTime);
     }

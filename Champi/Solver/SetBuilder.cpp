@@ -154,13 +154,21 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
             // Go through meldSolvers
             float partialProgress = 0.0f;
             for (auto idx : meldSolversToSave) {
-                if (meldSolvers[idx].done) {
+                auto& meldSolver = meldSolvers[idx];
+                if (meldSolver.done) {
                     resultMeldSolverIdx = static_cast<int64_t>(idx); // resultMeldSolverIdx can be -1 but idx is unsigned
-                    resultSetIt = meldSolvers[idx].results.begin();
+                    resultSetIt = meldSolver.results.begin();
                 } else {
+                    // Given the exponential nature of the solving algorithm a simple currentCount / maxCounter gives an estimation off by orders of magnitude
+                    // This formula gives an estimation in the same order of magnitude and is meant to overestimate a little
+                    float solvingProgress = 0.0f;
+                    if (meldSolver.currentCount > 0) {
+                        auto ratio = meldSolver.currentCount / meldSolver.maxCounter;
+                        solvingProgress = powf(ratio, 0.25f - 0.07f * powf(ratio, 0.2f)) * logf(meldSolver.currentCount) / meldSolver.logMaxCounter;
+                    }
                     // This is calculated backwards because _switchCounter is updated when creating the meld solver
                     // So until it is done we need to remove the progress it hasn't done yet
-                    partialProgress += meldSolvers[idx].solvingProgress - 1;
+                    partialProgress += solvingProgress - 1;
                 }
             }
 
@@ -178,6 +186,13 @@ void SetBuilder::solve(stop_token stopToken, Job* job, int level, const map<int,
     }
     if (!stopToken.stop_requested()) {
         solvingTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startTime;
+    } else {
+        // jthreads are joined automatically but random errors are sometimes happening when stop is requested
+        // It could be due to the meldSolvers being destructed before threads when exiting this method, causing memory access errors
+        // So let's join all threads to make sure they're not trying to read memory when we exit
+        for (auto& [_, t] : threads) {
+            if (t.joinable()) t.join();
+        }
     }
     activeThreads--;
     isSolving = false;

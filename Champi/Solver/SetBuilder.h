@@ -11,6 +11,7 @@
 #include <chrono>
 #include <atomic>
 #include <utility>
+#include <cmath>
 
 #include "Damage.h"
 #include "MeldSolver.h"

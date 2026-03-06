@@ -29,7 +29,9 @@ public:
 
 	vector<GearPiece*> gearPieces;
 	map<int, GearSet> results;
-	float solvingProgress = 0.0f;
+	float currentCount = 0.0f;
+	float maxCounter = 1.0f;
+	float logMaxCounter = 1.0f;
 	bool done = false;
 
 	void findBestMelds();
