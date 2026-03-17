@@ -141,6 +141,7 @@
     <ClCompile Include="Entities\BaseParam.cpp" />
     <ClCompile Include="Entities\Data.cpp" />
     <ClCompile Include="Entities\Food.cpp" />
+    <ClCompile Include="Entities\Item.cpp" />
     <ClCompile Include="Entities\Job.cpp" />
     <ClCompile Include="Entities\Materia.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="Entities\BaseParam.h" />
     <ClInclude Include="Entities\Data.h" />
     <ClInclude Include="Entities\Food.h" />
+    <ClInclude Include="Entities\Item.h" />
     <ClInclude Include="Entities\Job.h" />
     <ClInclude Include="Entities\Materia.h" />
     <ClInclude Include="ImGui\imconfig.h" />

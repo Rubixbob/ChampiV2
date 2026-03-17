@@ -6,6 +6,7 @@
 #include "BaseParam.h"
 #include "Food.h"
 #include "GearPiece.h"
+#include "Item.h"
 #include "Job.h"
 #include "Materia.h"
 
@@ -24,7 +25,8 @@ public:
 
 	map<int, BaseParam> baseParamList;
 	vector<Food> foodList;
-	vector<GearPiece> gearPieceList;
+	map<int, GearPiece> gearPieceList;
+	map<int, Item> requiredItemList;
 	vector<Job> jobList;
 	vector<Materia> materiaList;
 

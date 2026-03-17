@@ -7,6 +7,7 @@
 #include <set>
 #include <algorithm>
 
+#include "Item.h"
 #include "Materia.h"
 
 #include "../Solver/Settings.h"
@@ -25,14 +26,12 @@ struct MeldPerm
 	uint64_t matKey = 0;
 };
 
-class GearPiece
+class GearPiece : public Item
 {
 public:
     GearPiece();
     virtual ~GearPiece();
 
-    int id; // #
-    string name; // Name
 	int equipSlotCategory; // EquipSlotCategory
 	int damagePhys; // DamagePhys
 	int damageMag; // DamageMag
@@ -43,7 +42,6 @@ public:
 	int classJobCategory; // ClassJobCategory
 	int materiaSlotCount; // MateriaSlotCount
 	bool isAdvancedMeldingPermitted; // IsAdvancedMeldingPermitted
-	int icon; // Icon
 	int levelItem; // LevelItem
 	bool isUnique; // IsUnique
 
@@ -51,6 +49,8 @@ public:
 	map<int, int> minBaseParamValue;
 	map<int, int> maxBaseParamValue;
 	map<int, int> maxBaseParamMatValue;
+
+	map<int, map<Item*, int>> requiredItems; // For each shop, count per item
 
 	inline static const map<int, string> equipSlotName = {
 		{1, "Weapon"},

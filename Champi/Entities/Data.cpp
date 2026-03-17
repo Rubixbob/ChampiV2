@@ -9,6 +9,8 @@ Data::Data()
     FileReader::Instance().readGearPieceLight();
     FileReader::Instance().readJobLight();
     FileReader::Instance().readMateriaLight();
+    FileReader::Instance().readRequiredItemLight();
+    FileReader::Instance().readSpecialShopLight();
 }
 
 Data::~Data()

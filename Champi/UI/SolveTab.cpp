@@ -90,6 +90,21 @@ void SolveTab::drawGearTab() {
                     updateBaseParamRanges();
                 }
                 if (!isSelected) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.4f)));
+
+                if (item->requiredItems.size() > 0 && ImGui::BeginItemTooltip()) {
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                    string tooltipText = "";
+                    for (auto& [shopId, costMap] : item->requiredItems) {
+                        if (shopId != item->requiredItems.begin()->first) tooltipText += "\n";
+
+                        for (auto [requiredItem, requiredItemCount] : costMap) {
+                            tooltipText += to_string(requiredItemCount) + "x " + requiredItem->name + "\n";
+                        }
+                    }
+                    ImGui::TextUnformatted(tooltipText.c_str());
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndTooltip();
+                }
                 
                 for (const auto& baseParam : _gearBaseParamToDisplay) {
                     ImGui::TableSetColumnIndex(col++);
@@ -669,7 +684,7 @@ void SolveTab::initGearList(bool updateRanges) {
     _selectedJobGearPieces.clear();
 
     int maxItemLvl = 0;
-    for (auto& gearPiece : Data::Instance().gearPieceList) {
+    for (auto& [id, gearPiece] : Data::Instance().gearPieceList) {
         if (!_selectedJob->categories.contains(gearPiece.classJobCategory)) continue;
 
         if (gearPiece.levelItem > maxItemLvl) {

@@ -19,7 +19,6 @@ void FileReader::readAllFiles() {
     progress = 0.0f;
 
 	// Reset data
-    gearList.clear(); // TODO: delete when gearPieceList works
     Data::Instance().baseParamList.clear();
     Data::Instance().foodList.clear();
     Data::Instance().gearPieceList.clear();
@@ -31,6 +30,9 @@ void FileReader::readAllFiles() {
 	_itemActionIdToItemFoodIdx.clear();
     _materiaOvermeldPercent.clear();
     _classJobNameToIdx.clear();
+    _tomestoneToItem.clear();
+    _itemCost.clear();
+    _requiredItems.clear();
 
     vector<FileType> filesToRead = {
         FileType::MateriaGrade,
@@ -40,7 +42,9 @@ void FileReader::readAllFiles() {
         FileType::Item,
         FileType::ClassJob,
         FileType::ClassJobCategory,
-        FileType::BaseParam
+        FileType::BaseParam,
+        FileType::TomestonesItem,
+        FileType::SpecialShop
     };
 
     filesSizeOffset = 0;
@@ -58,16 +62,13 @@ void FileReader::readAllFiles() {
     isReading = false;
 
     isWriting = true;
-    currentFile = _baseParamLightFileName;
     writeBaseParamLight();
-    currentFile = _foodLightFileName;
     writeFoodLight();
-    currentFile = _gearPieceLightFileName;
-	writeGearPieceLight();
-    currentFile = _jobLightFileName;
+    writeGearPieceLight();
     writeJobLight();
-    currentFile = _materiaLightFileName;
     writeMateriaLight();
+    writeRequiredItemLight();
+    writeSpecialShopLight();
     currentFile = "";
     isWriting = false;
 
@@ -77,6 +78,9 @@ void FileReader::readAllFiles() {
     _itemActionIdToItemFoodIdx.clear();
     _materiaOvermeldPercent.clear();
     _classJobNameToIdx.clear();
+    _tomestoneToItem.clear();
+    _itemCost.clear();
+    _requiredItems.clear();
 }
 
 bool FileReader::readFile(FileType fileType) {
@@ -99,13 +103,7 @@ bool FileReader::readFile(FileType fileType) {
             itemCol = col;
 
             classJobCategoryList.clear();
-            classJobUseList.clear();
-            equipSlotCategoryList.clear();
-            baseParamModifierList.clear();
             classJobCategoryList.insert(-1);
-            classJobUseList.insert(-1);
-            equipSlotCategoryList.insert(-1);
-            baseParamModifierList.insert(-1);
         }
 
         bool firstDataLineRead = false;
@@ -113,8 +111,11 @@ bool FileReader::readFile(FileType fileType) {
         while (!itemFile.eof()) {
             auto attributes = readLine(itemFile);
             if (!firstDataLineRead) {
-                while (attributes[0] != "0") {
+                char* p;
+                strtol(attributes[0].c_str(), &p, 10);
+                while (*p) { // Skip lines until first attribute is an int
                     attributes = readLine(itemFile);
+                    strtol(attributes[0].c_str(), &p, 10);
                 }
                 firstDataLineRead = true;
             }
@@ -162,6 +163,12 @@ void FileReader::handleLine(FileType fileType, const vector<string>& attributes,
         case MateriaGrade:
             handleMateriaGradeLine(attributes, col);
             break;
+        case SpecialShop:
+            handleSpecialShopLine(attributes, col);
+            break;
+        case TomestonesItem:
+            handleTomestonesItemLine(attributes, col);
+            break;
         default:
             break;
     }
@@ -173,11 +180,12 @@ void FileReader::handleItemLine(const vector<string>& attributes, map<string, in
     auto name = attributes[col["Name"]];
 	auto levelItem = stoi(attributes[col["LevelItem"]]);
 	auto itemActionId = stoi(attributes[col["ItemAction"]]);
-    if (equipSlotCategory > 0 && equipSlotCategory <= 13 && levelItem >= 150) {
-        gearList.push_back(attributes);
+	auto icon = stoi(attributes[col["Icon"]]);
 
-        Data::Instance().gearPieceList.emplace_back();
-		auto& gearPiece = Data::Instance().gearPieceList.back();
+    classJobCategoryList.insert(stoi(attributes[col["ClassJobCategory"]]));
+
+    if (equipSlotCategory > 0 && equipSlotCategory <= 13 && levelItem >= 150) {
+		auto& gearPiece = Data::Instance().gearPieceList[id];
         gearPiece.id = id;
 		gearPiece.name = name;
         gearPiece.equipSlotCategory = equipSlotCategory;
@@ -225,28 +233,33 @@ void FileReader::handleItemLine(const vector<string>& attributes, map<string, in
 		gearPiece.classJobCategory = stoi(attributes[col["ClassJobCategory"]]);
 		gearPiece.materiaSlotCount = stoi(attributes[col["MateriaSlotCount"]]);
 		gearPiece.isAdvancedMeldingPermitted = attributes[col["IsAdvancedMeldingPermitted"]] == "True";
-		gearPiece.icon = stoi(attributes[col["Icon"]]);
+		gearPiece.icon = icon;
 		gearPiece.levelItem = levelItem;
 		gearPiece.isUnique = attributes[col["IsUnique"]] == "True";
-    } else {
-        auto materiaIt = _itemToMateriaIdx.find(id);
-        if (materiaIt != _itemToMateriaIdx.end()) {
-            Data::Instance().materiaList[materiaIt->second].name = name;
-            Data::Instance().materiaList[materiaIt->second].levelItem = levelItem;
-        }
-
-		auto foodIt = _itemActionIdToItemFoodIdx.find(itemActionId);
-        if (foodIt != _itemActionIdToItemFoodIdx.end()) {
-            Data::Instance().foodList[foodIt->second].id = id;
-            Data::Instance().foodList[foodIt->second].name = name;
-            Data::Instance().foodList[foodIt->second].levelItem = levelItem;
-        }
+        return;
     }
 
-    classJobCategoryList.insert(stoi(attributes[col["ClassJobCategory"]]));
-    classJobUseList.insert(stoi(attributes[col["ClassJobUse"]]));
-    equipSlotCategoryList.insert(equipSlotCategory);
-    baseParamModifierList.insert(stoi(attributes[col["BaseParamModifier"]]));
+    auto materiaIt = _itemToMateriaIdx.find(id);
+    if (materiaIt != _itemToMateriaIdx.end()) {
+        auto& materia = Data::Instance().materiaList[materiaIt->second];
+        materia.name = name;
+        materia.levelItem = levelItem;
+        return;
+    }
+
+	auto foodIt = _itemActionIdToItemFoodIdx.find(itemActionId);
+    if (foodIt != _itemActionIdToItemFoodIdx.end()) {
+        auto& food = Data::Instance().foodList[foodIt->second];
+        food.id = id;
+        food.name = name;
+        food.levelItem = levelItem;
+        return;
+    }
+
+    auto& item = Data::Instance().requiredItemList[id];
+    item.id = id;
+    item.name = name;
+    item.icon = icon;
 }
 
 void FileReader::handleItemActionLine(const vector<string>& attributes, map<string, int>& col) {
@@ -377,6 +390,56 @@ void FileReader::handleBaseParamLine(const vector<string>& attributes, map<strin
     baseParam.rightPercent = stoi(attributes[col["RingPercent"]]);
 }
 
+void FileReader::handleSpecialShopLine(const vector<string>& attributes, map<string, int>& col) {
+    auto shopId = stoi(attributes[col["#"]]);
+
+    for (int i = 0; col.contains("Item[" + to_string(i) + "].Item[0]"); i++) {
+        // Requirements
+        map<int, int> cost;
+        for (int j = 0; j < 3; j++) {
+            int costType = stoi(attributes[col["Item[" + to_string(i) + "].CostType[" + to_string(j) + "]"]]); // 1 = HQ, 2 = Tomestones, 3 = Scrips
+            int itemCost = stoi(attributes[col["Item[" + to_string(i) + "].ItemCost[" + to_string(j) + "]"]]);
+            int currencyCost = stoi(attributes[col["Item[" + to_string(i) + "].CurrencyCost[" + to_string(j) + "]"]]);
+
+            if (itemCost == 0 || currencyCost == 0 || costType == 1 || costType == 3) continue;
+
+            if (costType == 2) {
+                itemCost = _tomestoneToItem[itemCost];
+            }
+            cost[itemCost] = currencyCost;
+        }
+        if (cost.size() == 0) continue;
+
+        // Received items
+        for (int k = 0; k < 2; k++) {
+            int itemId = stoi(attributes[col["Item[" + to_string(i) + "].Item[" + to_string(k) + "]"]]);
+
+            auto it = Data::Instance().gearPieceList.find(itemId);
+            if (it == Data::Instance().gearPieceList.end()) continue;
+
+            _itemCost[itemId].emplace(shopId, cost);
+            auto& gearPieceCostMap = it->second.requiredItems[shopId];
+            for (auto [itemCost, currencyCost] : cost) {
+                // Add cost to gear piece
+                if (Data::Instance().gearPieceList.contains(itemCost)) {
+                    gearPieceCostMap[&Data::Instance().gearPieceList[itemCost]] = currencyCost;
+                } else if (Data::Instance().requiredItemList.contains(itemCost)) {
+                    _requiredItems.insert(itemCost);
+                    gearPieceCostMap[&Data::Instance().requiredItemList[itemCost]] = currencyCost;
+                }
+            }
+        }
+    }
+}
+
+void FileReader::handleTomestonesItemLine(const vector<string>& attributes, map<string, int>& col) {
+    auto tomestones = stoi(attributes[col["Tomestones"]]);
+    if (tomestones > 0) {
+        auto itemId = stoi(attributes[col["Item"]]);
+        _tomestoneToItem[tomestones] = itemId;
+    }
+}
+
 vector<string> FileReader::readLine(ifstream& itemFile) {
     vector<string> tokens;
 
@@ -424,6 +487,7 @@ map<string, int> FileReader::GenerateColumnMap(vector<string> headers) {
 }
 
 void FileReader::writeBaseParamLight() {
+    currentFile = _baseParamLightFileName;
 	ofstream baseParamLightFile(_baseParamLightFileName, ios::out);
     if (!baseParamLightFile) {
         cout << "Couldn't open " << _baseParamLightFileName << " for writing." << endl;
@@ -442,6 +506,7 @@ void FileReader::writeBaseParamLight() {
 }
 
 void FileReader::writeFoodLight() {
+    currentFile = _foodLightFileName;
 	ofstream foodLightFile(_foodLightFileName, ios::out);
     if (!foodLightFile) {
         cout << "Couldn't open " << _foodLightFileName << " for writing." << endl;
@@ -464,12 +529,13 @@ void FileReader::writeFoodLight() {
 }
 
 void FileReader::writeGearPieceLight() {
+    currentFile = _gearPieceLightFileName;
     ofstream gearPieceLightFile(_gearPieceLightFileName, ios::out);
     if (!gearPieceLightFile) {
         cout << "Couldn't open " << _gearPieceLightFileName << " for writing." << endl;
         return;
     }
-    for (const auto& gearPiece : Data::Instance().gearPieceList) {
+    for (const auto& [id, gearPiece] : Data::Instance().gearPieceList) {
         gearPieceLightFile << gearPiece.id << "\t";
         gearPieceLightFile << gearPiece.name << "\t";
         gearPieceLightFile << gearPiece.equipSlotCategory << "\t";
@@ -493,6 +559,7 @@ void FileReader::writeGearPieceLight() {
 }
 
 void FileReader::writeJobLight() {
+    currentFile = _jobLightFileName;
     ofstream jobLightFile(_jobLightFileName, ios::out);
     if (!jobLightFile) {
         cout << "Couldn't open " << _jobLightFileName << " for writing." << endl;
@@ -517,6 +584,7 @@ void FileReader::writeJobLight() {
 }
 
 void FileReader::writeMateriaLight() {
+    currentFile = _materiaLightFileName;
 	ofstream materiaLightFile(_materiaLightFileName, ios::out);
     if (!materiaLightFile) {
         cout << "Couldn't open " << _materiaLightFileName << " for writing." << endl;
@@ -537,6 +605,40 @@ void FileReader::writeMateriaLight() {
         }
         materiaLightFile << "\n";
 	}
+}
+
+void FileReader::writeRequiredItemLight() {
+    currentFile = _requiredItemLightFileName;
+    ofstream requiredItemLightFile(_requiredItemLightFileName, ios::out);
+    if (!requiredItemLightFile) {
+        cout << "Couldn't open " << _requiredItemLightFileName << " for writing." << endl;
+        return;
+    }
+    for (const auto& id : _requiredItems) {
+        const auto& item = Data::Instance().requiredItemList[id];
+        requiredItemLightFile << item.id << "\t";
+        requiredItemLightFile << item.name << "\t";
+        requiredItemLightFile << item.icon << "\n";
+    }
+}
+
+void FileReader::writeSpecialShopLight() {
+    currentFile = _specialShopLightFileName;
+    ofstream specialShopLightFile(_specialShopLightFileName, ios::out);
+    if (!specialShopLightFile) {
+        cout << "Couldn't open " << _specialShopLightFileName << " for writing." << endl;
+        return;
+    }
+    for (const auto& [itemId, shopMap] : _itemCost) {
+        for (const auto& [shopId, costMap] : shopMap) {
+            for (const auto& [requiredItemId, requiredItemCount] : costMap) {
+                specialShopLightFile << itemId << "\t";
+                specialShopLightFile << shopId << "\t";
+                specialShopLightFile << requiredItemId << "\t";
+                specialShopLightFile << requiredItemCount << "\n";
+            }
+        }
+    }
 }
 
 void FileReader::readBaseParamLight() {
@@ -615,9 +717,10 @@ void FileReader::readGearPieceLight() {
 
         stringstream ss;
         ss.str(line);
-        Data::Instance().gearPieceList.emplace_back();
-        auto& gearPiece = Data::Instance().gearPieceList.back();
-        ss >> gearPiece.id; ss.ignore();
+        int id;
+        ss >> id; ss.ignore();
+        auto& gearPiece = Data::Instance().gearPieceList[id];
+        gearPiece.id = id;
         getline(ss, gearPiece.name, '\t');
         ss >> gearPiece.equipSlotCategory;
         ss >> gearPiece.damagePhys;
@@ -698,5 +801,56 @@ void FileReader::readMateriaLight() {
         }
 
         materia.valueByGrade[materia.grade] = materia.value;
+    }
+}
+
+void FileReader::readRequiredItemLight() {
+    ifstream requiredItemLightFile(_requiredItemLightFileName, ios::in);
+    if (!requiredItemLightFile) {
+        cout << "Couldn't open " << _requiredItemLightFileName << " for reading." << endl;
+        return;
+    }
+    Data::Instance().requiredItemList.clear();
+
+    while (!requiredItemLightFile.eof()) {
+        string line;
+        getline(requiredItemLightFile, line);
+        if (line.size() == 0) continue;
+
+        stringstream ss;
+        ss.str(line);
+        int id;
+        ss >> id; ss.ignore();
+        auto& requiredItem = Data::Instance().requiredItemList[id];
+        requiredItem.id = id;
+        getline(ss, requiredItem.name, '\t');
+        ss >> requiredItem.icon;
+    }
+}
+
+void FileReader::readSpecialShopLight() {
+    ifstream specialShopLightFile(_specialShopLightFileName, ios::in);
+    if (!specialShopLightFile) {
+        cout << "Couldn't open " << _specialShopLightFileName << " for reading." << endl;
+        return;
+    }
+
+    while (!specialShopLightFile.eof()) {
+        string line;
+        getline(specialShopLightFile, line);
+        if (line.size() == 0) continue;
+
+        stringstream ss;
+        ss.str(line);
+        int itemId, shopId, requiredItemId, requiredItemCount;
+        ss >> itemId >> shopId >> requiredItemId >> requiredItemCount;
+
+        auto& costMap = Data::Instance().gearPieceList[itemId].requiredItems[shopId];
+
+        if (Data::Instance().gearPieceList.contains(requiredItemId)) {
+            costMap[&Data::Instance().gearPieceList[requiredItemId]] = requiredItemCount;
+        } else if (Data::Instance().requiredItemList.contains(requiredItemId)) {
+            costMap[&Data::Instance().requiredItemList[requiredItemId]] = requiredItemCount;
+        }
     }
 }

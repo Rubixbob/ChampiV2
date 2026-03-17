@@ -1,0 +1,292 @@
+25	Wolf Mark	65014
+27	Allied Seal	65024
+28	Allagan Tomestone of Poetics	65023
+48	Allagan Tomestone of Mathematics	65122
+49	Allagan Tomestone of Mnemonics	65137
+10307	Centurio Seal	65034
+12672	Expanse Totem	21002
+12673	Hive Totem	21002
+12674	Tarnished Gordian Lens	22624
+12675	Tarnished Gordian Shaft	23101
+12676	Tarnished Gordian Crank	26270
+12677	Tarnished Gordian Spring	20911
+12678	Tarnished Gordian Pedal	20960
+12680	Tarnished Gordian Bolt	21014
+12681	Gordian Manifesto - Page 1	26158
+12682	Gordian Manifesto - Page 2	26157
+12683	Gordian Manifesto - Page 3	26156
+12684	Gordian Manifesto - Page 4	26160
+12995	Silver Chocobo Feather	21909
+13627	Heavens' Ward Helm Fragment	20956
+14104	Goblin Cup	26106
+14105	Goblin Dice	26253
+14300	Fiend Totem	21002
+14301	Tarnished Midan Lens	22661
+14302	Tarnished Midan Shaft	23105
+14303	Tarnished Midan Crank	26273
+14304	Tarnished Midan Spring	20916
+14305	Tarnished Midan Pedal	20969
+14307	Tarnished Midan Bolt	21015
+14308	Midan Manifesto - Page 1	26196
+14309	Midan Manifesto - Page 2	26197
+14310	Midan Manifesto - Page 3	26198
+14311	Midan Manifesto - Page 4	26199
+15421	Horde Totem	21002
+16188	Goddess Totem	21002
+16546	Tarnished Alexandrian Lens	22662
+16547	Tarnished Alexandrian Shaft	23106
+16548	Tarnished Alexandrian Crank	26278
+16549	Tarnished Alexandrian Spring	20918
+16550	Tarnished Alexandrian Pedal	20970
+16552	Tarnished Alexandrian Bolt	21016
+16553	Alexandrian Manifesto - Page 1	26426
+16554	Alexandrian Manifesto - Page 2	26427
+16555	Alexandrian Manifesto - Page 3	26428
+16556	Alexandrian Manifesto - Page 4	26429
+17461	Demon Totem	21002
+17521	Proto Ultima Heat Shielding	26502
+19109	Revel Totem	26510
+19110	Bliss Totem	26511
+19111	Deltascape Lens	22665
+19112	Deltascape Shaft	23107
+19113	Deltascape Crank	26279
+19114	Deltascape Spring	20920
+19115	Deltascape Pedal	20971
+19117	Deltascape Bolt	21017
+19118	Deltascape Datalog v1.0	26430
+19119	Deltascape Datalog v2.0	26431
+19120	Deltascape Datalog v3.0	26432
+19121	Deltascape Datalog v4.0	26433
+21196	Shinryu Totem	26521
+21197	Dreadwyrm Totem	26526
+21773	Byakko Totem	26529
+21774	Sigmascape Lens	22672
+21775	Sigmascape Shaft	23101
+21776	Sigmascape Crank	26287
+21777	Sigmascape Spring	20922
+21778	Sigmascape Pedal	20972
+21780	Sigmascape Bolt	21018
+21781	Sigmascape Datalog v1.0	26430
+21782	Sigmascape Datalog v2.0	26431
+21783	Sigmascape Datalog v3.0	26432
+21784	Sigmascape Datalog v4.0	26433
+21801	Protean Crystal	20029
+21803	Anemos Crystal	20028
+22443	Khloe's Gold Certificate of Commendation	26191
+22444	Khloe's Silver Certificate of Commendation	26190
+23043	Lunar Totem	26533
+23165	Aetherpool Grip	26535
+23166	Empyrean Aetherpool Grip	26535
+23175	Ultima Totem	26532
+23210	Resistance Token	26171
+23219	Speed Belt	54193
+23382	Thavnairian Rain	20663
+23962	Suzaku Totem	26541
+23963	Alphascape Lens	22676
+23964	Alphascape Shaft	23108
+23965	Alphascape Crank	26288
+23966	Alphascape Spring	20924
+23967	Alphascape Pedal	20973
+23969	Alphascape Bolt	21019
+23970	Alphascape Datalog v1.0	26430
+23971	Alphascape Datalog v2.0	26431
+23972	Alphascape Datalog v3.0	26432
+23973	Alphascape Datalog v4.0	26433
+24124	Pyros Crystal	20032
+24797	Seiryu Totem	26545
+24807	Hydatos Crystal	20037
+24808	Eureka Fragment	26544
+24815	Cryptic Seal	53030
+24988	Rakshasa Token	26171
+24989	Doman Reiyaku	20682
+26533	Sack of Nuts	65068
+27391	King Totem	26555
+27392	Immaculate Totem	26556
+27393	Helm of Early Antiquity	40243
+27394	Armor of Early Antiquity	48200
+27395	Gauntlets of Early Antiquity	48614
+27396	Chausses of Early Antiquity	45798
+27397	Greaves of Early Antiquity	46623
+27399	Bangle of Early Antiquity	54614
+27400	Book of Resurrection	26445
+27401	Book of Descent	26446
+27402	Book of Inundation	26447
+27403	Book of Sepulture	26448
+28633	Colossus Totem	26588
+28708	Hades Totem	26587
+28722	Kholusian Rain	20683
+28723	Eulmoran Certificate of Import	26171
+29001	Ruby Totem	26601
+29020	Helm of Golden Antiquity	40212
+29021	Armor of Golden Antiquity	48082
+29022	Gauntlets of Golden Antiquity	48528
+29023	Chausses of Golden Antiquity	47535
+29024	Greaves of Golden Antiquity	46557
+29026	Bangle of Golden Antiquity	54649
+29027	Book of Fulmination	26445
+29028	Book of Furor	26446
+29029	Book of Iconoclasm	26447
+29030	Book of Refulgence	26448
+29669	Oddly Specific Latex	22675
+29670	Oddly Specific Fossil Dust	21236
+29671	Oddly Specific Obsidian	21452
+29672	Oddly Specific Mineral Sand	21234
+29673	Thinker's Coral	29061
+29674	Oddly Specific Amber	21270
+29675	Oddly Specific Bauble	26534
+29676	Oddly Specific Dark Matter	20407
+29677	Oddly Specific Striking Stone	25911
+29678	Dragonspine	29107
+30227	High Legatus Idol	26541
+30588	Undersea Rain	20684
+30589	Eulmoran Certificate of Novelty	26171
+30596	Totem of Light	26606
+31351	Bozjan Coin	26272
+31352	Bozjan Runner's Secrets (Head Gear)	26108
+31353	Bozjan Runner's Secrets (Body Gear)	26108
+31354	Bozjan Runner's Secrets (Hand Gear)	26108
+31355	Bozjan Runner's Secrets (Leg Gear)	26108
+31356	Bozjan Runner's Secrets (Foot Gear)	26108
+32132	Emerald Totem	26611
+32133	Helm of Lost Antiquity	40281
+32134	Armor of Lost Antiquity	48193
+32135	Gauntlets of Lost Antiquity	48502
+32136	Chausses of Lost Antiquity	45871
+32137	Greaves of Lost Antiquity	47129
+32139	Bangle of Lost Antiquity	54625
+32140	Book of Umbra	26445
+32141	Book of Litany	26446
+32142	Book of Anamorphosis	26447
+32143	Book of Eternity	26448
+32180	Bozjan Gold Coin	26325
+32186	Orderly Runner's Secrets (Head Gear)	20917
+32187	Orderly Runner's Secrets (Body Gear)	20913
+32188	Orderly Runner's Secrets (Hand Gear)	20915
+32189	Orderly Runner's Secrets (Leg Gear)	20919
+32190	Orderly Runner's Secrets (Foot Gear)	20911
+33210	Resplendent Carpenter's Final Material	26124
+33211	Resplendent Blacksmith's Final Material	26124
+33212	Resplendent Armorer's Final Material	26124
+33213	Resplendent Goldsmith's Final Material	26124
+33214	Resplendent Leatherworker's Final Material	26124
+33215	Resplendent Weaver's Final Material	26124
+33216	Resplendent Alchemist's Final Material	26124
+33217	Resplendent Culinarian's Final Material	26124
+33329	Irregular Tomestone of Pageantry	26328
+33439	Crystalline Rain	20685
+33440	Eulmoran Certificate of Grandeur	26171
+33480	Diamond Totem	26614
+33796	Bozjan Platinum Coin	26329
+35815	Astral Totem	26619
+35816	Umbral Totem	26620
+35817	Unsung Helm of Asphodelos	40005
+35818	Unsung Armor of Asphodelos	48191
+35819	Unsung Gauntlets of Asphodelos	48305
+35820	Unsung Chausses of Asphodelos	45065
+35821	Unsung Greaves of Asphodelos	47009
+35822	Unsung Ring of Asphodelos	54574
+35823	Asphodelos Mythos I	26450
+35824	Asphodelos Mythos II	26451
+35825	Asphodelos Mythos III	26452
+35826	Asphodelos Mythos IV	26453
+35831	Discal Tomestone	26621
+36793	Crucible Rain	20681
+36794	Hannish Certificate of Grade 1 Import	26171
+36809	Ultimatum Totem	26626
+36810	Dragonsong Totem	26627
+38374	Windswept Archfiend Totem	26629
+38375	Unsung Helm of Abyssos	40351
+38376	Unsung Armor of Abyssos	43136
+38377	Unsung Gauntlets of Abyssos	44056
+38378	Unsung Chausses of Abyssos	45006
+38379	Unsung Greaves of Abyssos	46101
+38380	Unsung Ring of Abyssos	54568
+38381	Abyssos Mythos I	26450
+38382	Abyssos Mythos II	26451
+38383	Abyssos Mythos III	26452
+38384	Abyssos Mythos IV	26453
+38943	Orthos Aetherpool Grip	26535
+38949	Flamecloaked Archfiend Totem	26638
+38951	Omega Totem	26639
+39087	Dharmic Rain	27618
+39088	Hannish Certificate of Grade 2 Import	26171
+40295	Voidcast Archfiend Totem	26644
+40297	Unsung Helm of Anabaseios	40043
+40298	Unsung Armor of Anabaseios	48087
+40299	Unsung Gauntlets of Anabaseios	48662
+40300	Unsung Chausses of Anabaseios	47610
+40301	Unsung Greaves of Anabaseios	47025
+40302	Unsung Ring of Anabaseios	54405
+40303	Anabaseios Mythos I	26450
+40304	Anabaseios Mythos II	26451
+40305	Anabaseios Mythos III	26452
+40306	Anabaseios Mythos IV	26453
+40895	Divine Rain	20682
+40896	Hannish Certificate of Grade 3 Import	26171
+41053	Voidvessel Totem	26646
+41699	Elevated Ester	27606
+43539	Skyruin Totem	26662
+43540	Resilient Totem	26663
+43541	Light-heavy Holohelm	26653
+43542	Light-heavy Holoarmor	26654
+43543	Light-heavy Hologauntlets	26655
+43544	Light-heavy Holochausses	26656
+43545	Light-heavy Hologreaves	26657
+43546	Light-heavy Holoearring	26658
+43548	Universal Tomestone	26652
+43549	AAC Illustrated: LHW Edition I	26457
+43550	AAC Illustrated: LHW Edition II	26458
+43551	AAC Illustrated: LHW Edition III	26459
+43552	AAC Illustrated: LHW Edition IV	26460
+43553	Surgelight Solvent	27637
+43554	Surgelight Twine	21686
+43555	Surgelight Glaze	27636
+44718	Totem Eternal	26671
+44743	Oracle Totem	26670
+44821	Everkeep Rain	27622
+44822	Everkeep Certificate of Grade 1 Import	26171
+44868	Clouddark Demimateria I	20261
+45043	Enlightenment Silver Piece	65119
+46179	Irregular Tomestone of Revelation	26346
+46720	Knight Totem	26680
+46721	Cruiser Holohelm	26672
+46722	Cruiser Holosurcoat	26673
+46723	Cruiser Hologauntlets	26674
+46724	Cruiser Holotrousers	26675
+46725	Cruiser Holosabatons	26676
+46726	Cruiser Holobrooch	26677
+46728	Universal Tomestone 2.0	26679
+46729	Evercharged Ester	27639
+46730	Evercharged Twine	21691
+46731	Evercharged Glaze	27638
+46732	AAC Illustrated: CW Edition I	26457
+46733	AAC Illustrated: CW Edition II	26458
+46734	AAC Illustrated: CW Edition III	26459
+46735	AAC Illustrated: CW Edition IV	26460
+46850	Waxing Arcanite	21221
+46974	Immortal Rain	27629
+46976	Everkeep Certificate of Grade 2 Import	26171
+46982	Grave Totem	26682
+47098	Illumed Aetherpool Grip	26535
+47101	Guardian Arkveld Certificate	26462
+47750	Arcanite	21209
+47864	Aetherspun Silver	21656
+47865	Aetherial Fixative	22653
+47866	Aetherspun Gold	21657
+47867	X-Fixative	22659
+49122	Irregular Tomestone of Aphorism	26347
+49748	Runaway Totem	26684
+49749	Heavy Holohelm	26686
+49750	Heavy Holoarmor	26687
+49751	Heavy Hologauntlets	26688
+49752	Heavy Holotrousers	26689
+49753	Heavy Hologreaves	26690
+49754	Heavy Holoring	26691
+49756	Universal Tomestone 3.0	26685
+49757	Thundersteeped Solvent	27640
+49758	Thundersteeped Twine	21693
+49759	Thundersteeping Glaze	27641
+49760	AAC Illustrated: HW Edition I	26457
+49761	AAC Illustrated: HW Edition II	26458
+49762	AAC Illustrated: HW Edition III	26459
+49763	AAC Illustrated: HW Edition IV	26460
